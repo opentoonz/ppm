@@ -24,6 +24,7 @@ set(MOC_HEADERS
 
 set(HEADERS
     ${MOC_HEADERS}
+    configurationpaths.h
     workflowtypes.h
     renamescript.h
     sceneinfotag.h
@@ -32,6 +33,7 @@ set(HEADERS
 
 set(SOURCES
 main.cpp
+configurationpaths.cpp
 mywindow.cpp
 workflow.cpp
 usersettingspopup.cpp
@@ -62,10 +64,6 @@ aboutpopup.cpp
     endif()
 set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${QTDIR};${QTDIR}/lib/cmake")
 
-if(BUILD_ENV_APPLE)
-    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.10)
-endif()
-
 # Add Qt libraries. QtCore and QtGui libraries will be 
 # added accordingly as the Widgets depends on them. 
 find_package( Qt6 REQUIRED
@@ -85,7 +83,9 @@ set(MOC_SOURCES)
 # Resource file(s)
 set(RESOURCES ppm_resources.qrc)
 
-set(RC_FILE ppm.rc)
+if(WIN32)
+    set(RC_FILE ppm.rc)
+endif()
 
 qt6_add_resources(SOURCES ${RESOURCES})
 
@@ -127,6 +127,31 @@ set(SOURCES
 #add_executable(${PROJECT_NAME} WIN32 ${HEADERS} ${SOURCES} ${RC_FILE})
 add_executable(${PROJECT_NAME} WIN32 ${HEADERS} ${SOURCES} ${RESOURCES} ${RC_FILE})
 
+if(APPLE)
+    # The UI uses SVG icons. Resolve plugins from the same Qt installation as
+    # the linked libraries, including when a global plugin directory exists.
+    find_package(Qt6 REQUIRED COMPONENTS Svg)
+    target_link_libraries(${PROJECT_NAME} Qt6::Svg)
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        MACOSX_BUNDLE TRUE
+        OUTPUT_NAME "PPM"
+        MACOSX_BUNDLE_BUNDLE_NAME "PPM"
+        MACOSX_BUNDLE_GUI_IDENTIFIER "org.opentoonz.ppm"
+        MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
+        MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
+    )
+    file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/ppm-qt-$<CONFIG>.conf"
+        CONTENT "[Paths]\nPlugins=$<TARGET_FILE_DIR:Qt6::QCocoaIntegrationPlugin>/..\n")
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+            "$<TARGET_FILE_DIR:${PROJECT_NAME}>/../Resources"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CMAKE_CURRENT_BINARY_DIR}/ppm-qt-$<CONFIG>.conf"
+            "$<TARGET_FILE_DIR:${PROJECT_NAME}>/../Resources/qt.conf"
+        VERBATIM
+    )
+endif()
+
 # バージョン番号は、上の project() の VERSION だけで管理する（「PPM について」に表示される）
 target_compile_definitions(${PROJECT_NAME} PRIVATE PPM_VERSION="${PROJECT_VERSION}")
 
@@ -153,4 +178,34 @@ if (NOT EXISTS ${CMAKE_BINARY_DIR}/CMakeCache.txt)
     if (NOT CMAKE_BUILD_TYPE)
         set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
     endif()
+endif()
+
+# Focused startup tests are opt-in for developer builds.
+option(PPM_BUILD_TESTS "Build startup behavior tests" OFF)
+if(PPM_BUILD_TESTS)
+    enable_testing()
+    find_package(Qt6 REQUIRED COMPONENTS Test)
+    add_executable(ppm_configuration_tests
+        tests/configurationpaths_test.cpp configurationpaths.cpp)
+    set_target_properties(ppm_configuration_tests PROPERTIES AUTOMOC ON)
+    target_compile_options(ppm_configuration_tests PRIVATE "$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+    target_link_libraries(ppm_configuration_tests PRIVATE Qt6::Test)
+    add_test(NAME ppm_configuration_tests COMMAND ppm_configuration_tests)
+    add_executable(ppm_sceneinfotag_tests tests/sceneinfotag_test.cpp sceneinfotag.cpp)
+    set_target_properties(ppm_sceneinfotag_tests PROPERTIES AUTOMOC ON)
+    target_link_libraries(ppm_sceneinfotag_tests PRIVATE Qt6::Test Qt6::Gui)
+    add_test(NAME ppm_sceneinfotag_tests COMMAND ppm_sceneinfotag_tests)
+    add_executable(ppm_confirmation_tests tests/confirmationdialog_test.cpp
+        actionconfirmationdialog.cpp workflow.cpp usersettings.cpp configurationpaths.cpp
+        sceneinfotag.cpp renamescript.cpp googlegateway.cpp googlechatgateway.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/moc_actionconfirmationdialog.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/moc_workflow.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/moc_googlegateway.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/moc_googlechatgateway.cpp)
+    add_dependencies(ppm_confirmation_tests ppm)
+    set_target_properties(ppm_confirmation_tests PROPERTIES AUTOMOC ON)
+    target_link_libraries(ppm_confirmation_tests PRIVATE Qt6::Test Qt6::Widgets
+        Qt6::Network Qt6::Core5Compat Qt6::Qml)
+    add_test(NAME ppm_confirmation_tests COMMAND ppm_confirmation_tests)
+    set_tests_properties(ppm_confirmation_tests PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen" TIMEOUT 30)
 endif()

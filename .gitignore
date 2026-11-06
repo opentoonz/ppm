@@ -29,3 +29,5 @@ ipch/
 
 # Copied from the LICENSE in the repository root by CMake at build time
 stuff/LICENSE/LICENSE.txt
+.DS_Store
+.vscode/

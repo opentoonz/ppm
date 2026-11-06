@@ -32,13 +32,15 @@
 各項目は、入力し終えた時点（欄から別の場所に移ったとき）で保存されます。
 **OK** ボタンは、画面を閉じるだけです。
 
-環境設定は、次のファイルに保存されます。
+Windows では、環境設定は次のファイルに保存されます。
 
 ```
 %LOCALAPPDATA%\PPM\usersettings.ini
 ```
 
 （ふつうは `C:\Users\<ユーザー名>\AppData\Local\PPM\usersettings.ini` です。）
+
+macOS では `~/Library/Application Support/PPM/usersettings.ini` に保存されます。`~` はユーザーのホームフォルダです。アプリ本体や Stuff フォルダとは別の場所に保存します。
 
 環境設定で一度も変えていない項目には、Stuff フォルダの `defaultusersettings.ini` の内容が初期値として使われます。
 詳しくは [Stuff フォルダ](../administration/stuff-folder.ja.md) を参照してください。

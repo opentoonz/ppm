@@ -35,17 +35,19 @@ When paths such as the root folder are written as relative paths in the project 
 
 ## Specifying the folder in conf.ini
 
-When PPM starts, it reads `conf.ini` in the same folder as `ppm.exe` to find the Stuff folder.
+On Windows, PPM reads `conf.ini` in the same folder as `ppm.exe` at startup to find the Stuff folder.
+
+On macOS, place `conf.ini` in `~/Library/Application Support/PPM` (create the directory if needed). This configuration is per user and shared by all PPM builds that user runs. Relative paths are resolved from that folder, and absolute paths must be accessible on the Mac (for example, `/Volumes/anime/PPM/stuff`). See [Building and starting on macOS](../about/contributing.md#building-and-starting-on-macos) for the source-build setup and its limitations.
 
 ```ini
 [General]
 StuffFolderPath=//fileserver/anime/PPM/stuff
 ```
 
-- A relative path is relative to the folder of `ppm.exe`. The `conf.ini` in the distribution has `StuffFolderPath=stuff`, which points to the `stuff` folder next to `ppm.exe`.
+- A relative path is relative to the directory containing `conf.ini`. On Windows, this is the folder of `ppm.exe`. The `conf.ini` in the distribution has `StuffFolderPath=stuff`, which points to the `stuff` folder next to `ppm.exe`.
 - Use slashes (`/`) as path separators. If you use backslashes (`\`), you must write two of them, like `\\` (see [Installation](../getting-started/installation.md)).
 - If there is no `conf.ini`, or `StuffFolderPath` is empty, PPM cannot find the Stuff folder and cannot open projects.
-- There is one `conf.ini` for each `ppm.exe`. If everyone uses one `ppm.exe` in a shared folder, `conf.ini` is also shared by everyone.
+- On Windows, there is one `conf.ini` for each `ppm.exe`. If everyone uses one `ppm.exe` in a shared folder, `conf.ini` is also shared by everyone.
 
 After changing the Stuff folder, restart PPM to apply the change.
 
@@ -73,7 +75,7 @@ XdtsViewerBinaryPath=
 | `OpenToonzArgument` | **OpenToonz arguments** |
 | `XdtsViewerBinaryPath` | **XDTS application path** |
 
-- Keys that are not written, and empty keys, keep the default of Preferences (empty). However, if `LanguageCode` is not written, the display language of Windows is used (English if there is no translation file for that language).
+- Keys that are not written, and empty keys, keep the default of Preferences (empty). However, if `LanguageCode` is not written, the operating system's display language is used (English if there is no translation file for that language).
 - The **User Name [USER_NAME]** cannot be given an initial value.
 - Use slashes (`/`) as path separators. Backslashes are treated the same way as in `conf.ini`.
 - The path above is an example. Check the actual installation location.

@@ -33,13 +33,15 @@ If the file at an application path cannot be found, or the translation file of t
 Each item is saved when you finish entering it (when you move from the field to somewhere else).
 The **OK** button only closes the dialog.
 
-The preferences are saved in the following file.
+On Windows, the preferences are saved in the following file.
 
 ```
 %LOCALAPPDATA%\PPM\usersettings.ini
 ```
 
 (This is usually `C:\Users\<user name>\AppData\Local\PPM\usersettings.ini`.)
+
+On macOS, the file is `~/Library/Application Support/PPM/usersettings.ini`, where `~` is your home folder. It is separate from the app bundle and the Stuff folder.
 
 For items you have never changed in Preferences, the contents of `defaultusersettings.ini` in the Stuff folder are used as the initial values.
 See [The Stuff Folder](../administration/stuff-folder.md) for details.

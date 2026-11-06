@@ -1,0 +1,61 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.name }} / Qt 6.12
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows x64
+            os: windows-2022
+            qt-host: windows
+            qt-arch: win64_msvc2022_64
+            artifact: windows-x64
+          - name: macOS arm64
+            os: macos-15
+            qt-host: mac
+            qt-arch: clang_64
+            artifact: macos-arm64
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Install Qt
+        uses: jurplel/install-qt-action@b344308e4483fc892e0d27b3cd1b173ebdd95f06 # v4.5.0
+        with:
+          version: '6.12.0'
+          host: ${{ matrix.qt-host }}
+          arch: ${{ matrix.qt-arch }}
+          modules: qt5compat
+          # aqtinstall 3.3.0 cannot read the Qt 6.11+ Windows repository layout.
+          # Pin upstream's fix until it is available in a release (aqtinstall#1000).
+          aqtsource: git+https://github.com/miurahr/aqtinstall.git@076e1659807d0b362a3ed684d54c2e9c775eb9c7
+          cache: true
+      - name: Configure Windows
+        if: runner.os == 'Windows'
+        run: cmake -S sources -B build -G "Visual Studio 17 2022" -A x64 "-DQTDIR=$env:QT_ROOT_DIR" -DPPM_BUILD_TESTS=ON
+      - name: Configure macOS
+        if: runner.os == 'macOS'
+        run: '"$QT_ROOT_DIR/bin/qt-cmake" -S sources -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=arm64 -DQTDIR="$QT_ROOT_DIR" -DPPM_BUILD_TESTS=ON'
+      - name: Build
+        run: cmake --build build --config Release --parallel 3
+      - name: Test startup and confirmation dialogs
+        run: ctest --test-dir build -C Release -R '^ppm_(configuration|sceneinfotag|confirmation)_tests$' --output-on-failure
+      - name: Package and smoke-test application
+        run: python .github/scripts/package-artifact.py
+      - name: Upload application
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ppm-${{ matrix.artifact }}-${{ github.sha }}
+          path: build/artifacts/*
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0

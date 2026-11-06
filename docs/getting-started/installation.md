@@ -4,6 +4,8 @@
 
 PPM does not use an installer. Extract the distributed ZIP file and start `ppm.exe` inside it.
 
+The distribution described on this page is for Windows. For the macOS source build (macOS 15+, Apple Silicon, Qt 6.12), see [Building and starting on macOS](../about/contributing.md#building-and-starting-on-macos), including its configuration paths and current limitations.
+
 ## System requirements
 
 | Item | Requirement |

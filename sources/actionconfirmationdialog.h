@@ -41,6 +41,7 @@ protected:
 
 public:
   StepExecutor(bool isUndo) : m_isUndo(isUndo) {}
+  virtual ~StepExecutor() = default;
   // checkSumはUndoのときだけ評価する
   virtual QWidget* createWidget() = 0;
   // checkSumは実行時に格納する
@@ -300,7 +301,7 @@ public:
   StepExecutor_CopyFolderContents(FlowGroupId groupId, const ActionStep& step,
                                   QString orgPath, QString sequence,
                                   QString sceneNumber, bool isUndo);
-  ~StepExecutor_CopyFolderContents();
+  ~StepExecutor_CopyFolderContents() override;
   QWidget* createWidget() override;
   QWidget* createWidget_do();
   QWidget* createWidget_undo();

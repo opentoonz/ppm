@@ -29,6 +29,7 @@ protected:
 public:
   SceneInfoTag(QString idName, bool canManuallySet)
       : m_idName(idName), m_canManuallySet(canManuallySet) {}
+  virtual ~SceneInfoTag() = default;
 
   QString idName() const { return m_idName; }
   bool canManuallySet() const { return m_canManuallySet; }

@@ -35,17 +35,19 @@ stuff/
 
 ## conf.ini での指定
 
-PPM は起動時に、`ppm.exe` と同じフォルダにある `conf.ini` を読んで、Stuff フォルダの場所を知ります。
+Windows では、PPM は起動時に `ppm.exe` と同じフォルダにある `conf.ini` を読んで、Stuff フォルダの場所を知ります。
+
+macOS では、`~/Library/Application Support/PPM` に `conf.ini` を置きます。フォルダがなければ作成してください。この設定はユーザーごとに保存され、そのユーザーが使うすべての PPM ビルドで共用します。相対パスはそのフォルダを起点に解決し、絶対パスには Mac からアクセスできるパス（例：`/Volumes/anime/PPM/stuff`）を指定します。ソースビルドの設定方法と制限は、[macOS でのビルドと起動](../about/contributing.ja.md#macos-でのビルドと起動) を参照してください。
 
 ```ini
 [General]
 StuffFolderPath=//fileserver/anime/PPM/stuff
 ```
 
-- 相対パスで書いた場合は、`ppm.exe` のあるフォルダを起点とします。配布物の `conf.ini` は `StuffFolderPath=stuff` で、`ppm.exe` の隣の `stuff` フォルダを指しています。
+- 相対パスで書いた場合は、`conf.ini` のあるフォルダを起点とします。Windows では `ppm.exe` のあるフォルダです。配布物の `conf.ini` は `StuffFolderPath=stuff` で、`ppm.exe` の隣の `stuff` フォルダを指しています。
 - パスの区切りには、スラッシュ（`/`）を使ってください。バックスラッシュ（`\`）を使う場合は、`\\` のように2つ重ねて書く必要があります（[インストール](../getting-started/installation.ja.md) を参照）。
 - `conf.ini` がない場合や、`StuffFolderPath` が空の場合は、Stuff フォルダが見つからず、プロジェクトを開けません。
-- `conf.ini` は `ppm.exe` ごとに1つです。共有フォルダに置いた1つの `ppm.exe` を全員で使う場合は、`conf.ini` も全員で共有されます。
+- Windows では `conf.ini` は `ppm.exe` ごとに1つです。共有フォルダに置いた1つの `ppm.exe` を全員で使う場合は、`conf.ini` も全員で共有されます。
 
 Stuff フォルダを変えたときは、PPM を起動し直すと反映されます。
 
@@ -73,7 +75,7 @@ XdtsViewerBinaryPath=
 | `OpenToonzArgument` | **OpenToonz起動時の引数** |
 | `XdtsViewerBinaryPath` | **XDTS用アプリケーションのパス** |
 
-- 書かなかったキーと、空のキーは、環境設定の既定のまま（空欄）になります。ただし `LanguageCode` は、書かなかった場合、Windows の表示言語に合わせます（その言語の翻訳ファイルが無いときは英語）。
+- 書かなかったキーと、空のキーは、環境設定の既定のまま（空欄）になります。ただし `LanguageCode` は、書かなかった場合、OS の表示言語に合わせます（その言語の翻訳ファイルが無いときは英語）。
 - **ユーザー名 [USER_NAME]** は、初期値を決められません。
 - パスの区切りには、スラッシュ（`/`）を使ってください。バックスラッシュの扱いは、`conf.ini` と同じです。
 - 上のパスは例です。実際のインストール先を確かめて書いてください。

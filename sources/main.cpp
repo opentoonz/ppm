@@ -8,6 +8,9 @@
 
 // Qt includes
 #include <QApplication>
+#ifdef Q_OS_MACOS
+#include <QStyleHints>
+#endif
 #include <QTranslator>
 #include <QSettings>
 // #include <QDir>
@@ -17,9 +20,14 @@
 //-----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
+#ifdef Q_OS_WIN
   qputenv("QT_QPA_PLATFORM", "windows:darkmode=0");
+#endif
 
   QApplication a(argc, argv);
+#ifdef Q_OS_MACOS
+  a.styleHints()->setColorScheme(Qt::ColorScheme::Light);
+#endif
   a.setApplicationName("PPM");
   // バージョン番号は CMakeLists.txt の project() で決める
   a.setApplicationVersion(PPM_VERSION);

@@ -1,7 +1,7 @@
 #include "usersettings.h"
+#include "configurationpaths.h"
 
 #include <QSettings>
-#include <QStandardPaths>
 #include <QFileInfo>
 #include <QDir>
 #include <QMessageBox>
@@ -12,8 +12,7 @@
 namespace {
 
 QString userSettingsPath() {
-  return QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) +
-         "/usersettings.ini";
+  return ConfigurationPaths::userSettingsFilePath();
 }
 
 }  // namespace
@@ -28,14 +27,9 @@ UserSettings::UserSettings()
   // 既定のユーザ設定・ユーザ設定のどちらかで言語が指定されたか
   // （空文字列＝英語の指定もありうるため、値ではなくキーの有無で判定する）
   bool languageSpecified = false;
-  QSettings confSettings(qApp->applicationDirPath() + "/conf.ini",
-                         QSettings::IniFormat);
-  QString stuffDirPath = confSettings.value("StuffFolderPath").toString();
-  if (!stuffDirPath.isEmpty()) {
-    QDir stuffDir(stuffDirPath);
-    if (stuffDir.isRelative())
-      stuffDir.setPath(qApp->applicationDirPath() + "/" + stuffDir.path());
-    m_stuffFolderPath = stuffDir.absolutePath();
+  m_stuffFolderPath      = ConfigurationPaths::stuffFolderPath(
+      QCoreApplication::applicationDirPath());
+  if (!m_stuffFolderPath.isEmpty()) {
     std::cout << "m_stuffFolderPath = " << m_stuffFolderPath.toStdString()
               << std::endl;
 
@@ -57,7 +51,7 @@ UserSettings::UserSettings()
         defaultSettings.value("OpenToonzArgument", m_openToonzArgument)
             .toString();
     if (defaultSettings.contains("LanguageCode")) {
-      m_languageCode     = defaultSettings.value("LanguageCode").toString();
+      m_languageCode    = defaultSettings.value("LanguageCode").toString();
       languageSpecified = true;
     }
     defaultSettings.endGroup();
@@ -80,7 +74,7 @@ UserSettings::UserSettings()
     m_userNameOverride =
         settings.value("UserNameOverride", m_userNameOverride).toString();
     if (settings.contains("LanguageCode")) {
-      m_languageCode     = settings.value("LanguageCode").toString();
+      m_languageCode    = settings.value("LanguageCode").toString();
       languageSpecified = true;
     }
     settings.endGroup();

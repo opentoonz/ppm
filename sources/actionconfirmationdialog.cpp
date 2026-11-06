@@ -4806,8 +4806,8 @@ RewindDestinationDialog::RewindDestinationDialog(WorkflowType workflowType,
   m_comboBox = new QComboBox(this);
   // int wfId = workflowId;
   Workflow wf = WorkflowManager::instance()->workflow(workflowType);
-  WorkflowProtocol protocol = wf.protocols.at(protocolId);
-  m_comboBox->addItem(color2Icon(wf.color), wf.name, workflowType);
+  m_comboBox->addItem(color2Icon(wf.color), wf.name,
+                      QVariantList{static_cast<int>(workflowType), protocolId});
 
   // 同じワークフローグループのワークフローを集める
   QList<QPair<WorkflowType, Workflow>> workflowsInGroup;

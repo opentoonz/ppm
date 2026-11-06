@@ -34,7 +34,7 @@ If you develop with an AI coding tool, have it read `AGENTS.md` in the root of t
 
 ## Building from source
 
-### Requirements
+### Windows requirements
 
 | Item | Details |
 |---|---|
@@ -45,7 +45,7 @@ If you develop with an AI coding tool, have it read `AGENTS.md` in the root of t
 
 The Qt modules used are Qt Widgets, Qt Network, Qt Core5Compat, Qt Concurrent, Qt QML, and Qt Linguist Tools.
 
-### Build steps
+### Building on Windows
 
 Run the following in the repository folder.
 For `QTDIR`, give the folder where Qt is installed (the folder that has `bin` and `lib`).
@@ -62,7 +62,7 @@ cmake --build build --config Release
 This creates `build/Release/ppm.exe`.
 You can also open `ppm.sln` in the `build` folder in Visual Studio and build it there.
 
-### Running it
+### Running on Windows
 
 To run `ppm.exe`, you need the Qt DLLs and `conf.ini`.
 
@@ -81,6 +81,62 @@ To run `ppm.exe`, you need the Qt DLLs and `conf.ini`.
 
 The `stuff` folder has the sample project and data.
 To check that your build works, first follow the steps of the [Tutorial: Moving a Scene Through the Pipeline](../getting-started/tutorial.md).
+
+### Building and starting on macOS
+
+Source builds target **macOS 15 or later on Apple Silicon (arm64), with Qt 6.12**. Intel Macs are outside the supported scope. Install Xcode 16 or later (including its command-line tools), CMake, and Qt for macOS with **Qt SVG** and the **Qt 5 Compatibility Module**. Use a CMake version supported by your Qt installation.
+
+Run these commands from the repository folder, adjusting `QTDIR` to the Qt installation directory:
+
+```bash
+export QTDIR="$HOME/Qt/6.12.0/macos"
+"$QTDIR/bin/qt-cmake" -S sources -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=arm64 -DQTDIR="$QTDIR"
+cmake --build build --parallel
+```
+
+This creates `build/PPM.app`. The build uses Qt's default deployment target; PPM's supported macOS versions start at 15. PPM currently uses a light appearance even when macOS is in Dark Mode.
+
+Create the per-user configuration directory:
+
+```bash
+mkdir -p "$HOME/Library/Application Support/PPM"
+```
+
+Create `~/Library/Application Support/PPM/conf.ini` and set the absolute path to your Stuff folder (replace the example path with your checkout location):
+
+```ini
+[General]
+StuffFolderPath=/absolute/path/to/ppm/stuff
+```
+
+Start the application with `open build/PPM.app`. Keep the Qt installation available: this is a source build linked to the installed Qt libraries, not a self-contained distribution. Its generated `Contents/Resources/qt.conf` points to the plugins from that Qt installation. With a multi-configuration generator such as Xcode, build with `--config Release` and start `build/Release/PPM.app`. All builds use the same per-user configuration directory.
+
+PPM resolves a relative `StuffFolderPath` from `~/Library/Application Support/PPM`, independently of the app location and working directory. An absolute local path such as `/Volumes/anime/PPM/stuff` also works. Per-user settings are stored in `~/Library/Application Support/PPM/usersettings.ini`; see [The Stuff Folder](../administration/stuff-folder.md) and [Preferences](../using/preferences.md).
+
+The macOS source build covers startup and configuration. External application selection/launching, ZIP actions, and mixed Windows/macOS shared-folder workflows are not supported in this build. Use a separate test copy of the Stuff folder and production data when evaluating it; opening the sample project can update its progress files.
+
+### Focused startup tests
+
+Add `-DPPM_BUILD_TESTS=ON` to the configure command, build, and run:
+
+```bash
+ctest --test-dir build -C Release -R '^ppm_(configuration|sceneinfotag|confirmation)_tests$' --output-on-failure
+```
+
+These tests cover configuration lookup, relative and absolute Stuff paths, the per-user settings location, scene-tag destruction during shutdown, and confirming or canceling forward and rewind actions. GitHub Actions builds the application and runs these tests on Windows x64 and macOS arm64 with Qt 6.12. Native UI startup and production file-server workflows require separate checks.
+
+### Downloading CI application packages
+
+After a successful **Build** workflow run, open that run in the repository's **Actions** tab and download its **Artifacts**. The artifact names include the platform and source commit. They are kept for 14 days. A GitHub login is required to download them.
+
+Extract the downloaded artifact ZIP, then extract the application archive inside it:
+
+- `ppm-windows-x64.zip`: contains `PPM/ppm.exe`, Qt runtime dependencies, and `conf.ini` pointing to the included `stuff` folder. The Visual C++ runtime DLLs are included next to `ppm.exe`.
+- `ppm-macos-arm64.tar.gz`: contains `PPM/PPM.app` with Qt frameworks and plugins. The tar archive preserves executable permissions and framework symlinks. Configure `~/Library/Application Support/PPM/conf.ini` as described above, using the absolute path to the extracted `PPM/stuff` folder. The app has an ad-hoc signature and is not notarized. If macOS blocks a build you trust, allow it in **System Settings > Privacy & Security > Open Anyway**.
+
+Both packages include sample data, license files, English and Japanese manuals, and `BUILD.txt` identifying the source commit. These are development builds for evaluation with copies of your data. The macOS feature limitations listed above also apply to these packages.
+
+CI deploys Qt into a separate staging directory, checks macOS dependency paths and signatures, and checks that the packaged application stays running for five seconds without Qt on `PATH`. This startup smoke check terminates the process afterward; it does not exercise UI interactions or production workflows.
 
 ### Coding style
 
