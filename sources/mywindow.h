@@ -12,7 +12,6 @@
 #include <QCheckBox>
 #include "workflow.h"
 
-class QProcess;
 class QButtonGroup;
 class UserSettingsPopup;
 class QComboBox;
@@ -69,7 +68,6 @@ private:
 
 class MyTable : public QTableWidget {
   Q_OBJECT
-  QProcess* m_process;
 
   // チェックボックスが１つだけONのときはfalseを返し、
   // 通常のonActionButtonClickedの処理を続ける

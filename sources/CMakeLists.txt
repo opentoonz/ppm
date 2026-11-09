@@ -25,6 +25,7 @@ set(MOC_HEADERS
 set(HEADERS
     ${MOC_HEADERS}
     configurationpaths.h
+    platform.h
     workflowtypes.h
     renamescript.h
     sceneinfotag.h
@@ -34,6 +35,7 @@ set(HEADERS
 set(SOURCES
 main.cpp
 configurationpaths.cpp
+platform.cpp
 mywindow.cpp
 workflow.cpp
 usersettingspopup.cpp

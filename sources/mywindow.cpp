@@ -1,4 +1,5 @@
 #include "mywindow.h"
+#include "platform.h"
 #include "usersettingspopup.h"
 #include "actionconfirmationdialog.h"
 #include "usersettings.h"
@@ -227,8 +228,7 @@ const QString ColumnVisibilityKey_Episode          = "Episode";
 const QString ColumnVisibilityKey_LastModifiedDate = "LastModifiedDate";
 const QString ColumnVisibilityKey_Information      = "Information";
 
-MyTable::MyTable(QWidget* parent)
-    : QTableWidget(0, 0, parent), m_process(new QProcess(this)) {
+MyTable::MyTable(QWidget* parent) : QTableWidget(0, 0, parent) {
   QStringList labels;
   labels << ""  // まとめて承認ボタンの列
          << tr("Open")
@@ -1055,16 +1055,16 @@ void MyTable::onOpenButtonClicked() {
     // OpenToonzの引数は、ファイルのパスの前に渡す。
     // QProcess::startDetached()はprogram全体を実行ファイルのパスとして扱うため、
     // 引数はprogramに連結せず、argumentsに分けて入れる（"..."で囲んだ空白入りの引数も扱える）
-    if (path.endsWith(".tnz") &&
+    const bool isToonzScene = path.endsWith(".tnz");
+    if (isToonzScene &&
         !UserSettings::instance()->getOpenToonzArgument().trimmed().isEmpty()) {
       arguments << QProcess::splitCommand(
           UserSettings::instance()->getOpenToonzArgument());
     }
-    arguments << QDir::toNativeSeparators(path);
-
-    // QProcess * myProcess = new QProcess(this);
-    // m_process->start(program, arguments);
-    if (!QProcess::startDetached(program, arguments)) {
+    const auto mode = isToonzScene ? Platform::OpenMode::CommandLine
+                                   : Platform::OpenMode::Document;
+    if (!Platform::openFile(program, QDir::toNativeSeparators(path), mode,
+                            arguments)) {
       showStartProgramFailedMessage(program, path);
       return;
     }
@@ -1094,10 +1094,7 @@ void MyTable::onOpenXdtsButtonClicked() {
       showOpenWithDefaultAppFailedMessage(path);
     return;
   }
-  QStringList arguments;
-  arguments << path;
-  // m_process->start(program, arguments);
-  if (!QProcess::startDetached(program, arguments))
+  if (!Platform::openFile(program, path))
     showStartProgramFailedMessage(program, path);
 }
 
