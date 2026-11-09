@@ -47,8 +47,8 @@ jobs:
         run: '"$QT_ROOT_DIR/bin/qt-cmake" -S sources -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=arm64 -DQTDIR="$QT_ROOT_DIR" -DPPM_BUILD_TESTS=ON'
       - name: Build
         run: cmake --build build --config Release --parallel 3
-      - name: Test startup and confirmation dialogs
-        run: ctest --test-dir build -C Release -R '^ppm_(configuration|sceneinfotag|confirmation)_tests$' --output-on-failure
+      - name: Test application behavior
+        run: ctest --test-dir build -C Release -R '^ppm_(configuration|sceneinfotag|confirmation|macos_operations)_tests$' --output-on-failure
       - name: Package and smoke-test application
         run: python .github/scripts/package-artifact.py
       - name: Upload application
