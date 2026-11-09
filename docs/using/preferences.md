@@ -3,7 +3,7 @@
 # Preferences
 
 **Preferences** are settings for each PC user.
-Press the gear button (**Project Settings / Preferences**) at the top and choose **Preferences** from the menu to open them.
+On Windows, choose **Preferences** from the gear menu. On macOS, open settings from the **PPM** application menu or press **Command+,**.
 
 The procedure for setting them up when you first use PPM is explained in [Initial Setup](../getting-started/initial-setup.md).
 This page summarizes what each item does and where the settings are saved.
@@ -21,9 +21,11 @@ This page summarizes what each item does and where the settings are saved.
 | **XDTS application path** | The application for opening timesheets (`.xdts`), such as XDTS Viewer or Toei Animation Digital Exposure Sheet. |
 | **OpenToonz executable path** | The application for opening `.tnz` files. |
 | **OpenToonz arguments** | Startup options added when opening `.tnz` files in OpenToonz. They are passed before the path of the file. You can write several options separated by spaces. Enclose a value that contains spaces in `"`. |
-| **User Name [USER_NAME]** | The name substituted for `[USER_NAME]` in the project settings. If empty, the Windows user name is used. |
+| **User Name [USER_NAME]** | The name substituted for `[USER_NAME]` in the project settings. If empty, the login name is used. |
 
-For an item whose application path is empty, files are opened with the application associated with the extension in Windows.
+On macOS, use the **...** button to select an application (`.app`), or enter the path to its executable. PPM asks macOS to open drawings and timesheets in the selected application. For an OpenToonz `.app`, PPM starts a new instance and passes the scene path after any startup options.
+
+For an item whose application path is empty, the operating system opens the file with its default application for that extension.
 In that case, the OpenToonz arguments are not used.
 
 If the file at an application path cannot be found, or the translation file of the selected language cannot be found, a warning is shown when PPM starts.

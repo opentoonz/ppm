@@ -113,17 +113,17 @@ StuffFolderPath=/absolute/path/to/ppm/stuff
 
 相対パスの `StuffFolderPath` は、アプリの場所や作業ディレクトリに関係なく `~/Library/Application Support/PPM` を起点に解決します。`/Volumes/anime/PPM/stuff` のようなローカルの絶対パスも使えます。ユーザーごとの設定は `~/Library/Application Support/PPM/usersettings.ini` に保存されます。[Stuff フォルダ](../administration/stuff-folder.ja.md) と [環境設定](../using/preferences.ja.md) も参照してください。
 
-macOS のソースビルドは、起動と設定の読み書きに対応しています。外部アプリの選択・起動、ZIP 操作、Windows と macOS が混在する共有フォルダでの運用は、このビルドではサポートしていません。評価には Stuff フォルダと制作データのテスト用コピーを使ってください。サンプルプロジェクトを開くだけでも進捗ファイルが更新されることがあります。
+macOS の試験的なビルドでは、外部アプリの起動と「フォルダのZIP圧縮」ステップを使えます。Windows と macOS が混在する制作共有フォルダでの運用は、まだサポート対象外です。評価には Stuff フォルダと制作データのテスト用コピーを使ってください。サンプルプロジェクトを開くだけでも進捗ファイルが更新されることがあります。
 
-### 起動に関するテスト
+### 動作テスト
 
 構成時のコマンドに `-DPPM_BUILD_TESTS=ON` を追加してビルドし、次を実行します。
 
 ```bash
-ctest --test-dir build -C Release -R '^ppm_(configuration|sceneinfotag|confirmation)_tests$' --output-on-failure
+ctest --test-dir build -C Release -R '^ppm_(configuration|sceneinfotag|confirmation|macos_operations)_tests$' --output-on-failure
 ```
 
-設定ファイルの検索、Stuff フォルダの相対・絶対パス、ユーザー設定の保存先、終了時のカット情報タグの破棄、承認・工程内リテイク操作の確定とキャンセルを検証します。GitHub Actions は、Qt 6.12 を使って Windows x64 と macOS arm64 でビルドし、これらのテストを実行します。実際の画面の起動と制作現場のファイルサーバーでの動作は、別途確認が必要です。
+GitHub Actions は、Qt 6.12 を使って Windows x64 と macOS arm64 で PPM をビルドします。両方の環境で、設定ファイルの検索、Stuff フォルダのパス、ユーザー設定の保存先、終了時のカット情報タグの破棄、承認・工程内リテイク操作の確定とキャンセルを検証します。macOS では、テスト用アプリでのファイルのオープン、OpenToonz 用の引数の受け渡し、ZIP の作成と取り消しも検証します。
 
 ### CI アプリパッケージのダウンロード
 

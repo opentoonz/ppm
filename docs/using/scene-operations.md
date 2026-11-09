@@ -12,14 +12,14 @@ The **Open** column has the following buttons.
 |---|---|
 | **Open** | Opens the file of the scene in the application for your work. |
 | **Open XDTS** (XDTS icon) | Opens the timesheet (`.xdts`) of the scene. Disabled if no timesheet is found. |
-| **Open Containing Folder** (folder icon) | Opens the folder that contains the cue file in Explorer. |
+| **Open Containing Folder** (folder icon) | Opens the folder that contains the cue file in Explorer on Windows or Finder on macOS. |
 | **View Log** (log icon) | Shows the log of the scene in a separate window. Disabled if there is no log yet. |
 
 ### The Open button
 
 What the **Open** button does depends on the type of the cue file.
 
-- **`.clip`, `.tvpp`, or `.tnz` files**: Opened with the application set in [Preferences](preferences.md). If no application is set, the file is opened with the application associated with the extension in Windows.
+- **`.clip`, `.tvpp`, or `.tnz` files**: Opened with the application set in [Preferences](preferences.md). An empty path uses the operating system's default application for that extension.
 - **Other files** (such as marker text files): The scene folder is opened.
   If a "subfolder for the Open button" is set for the workflow group in the project settings, the work files in that subfolder are opened.
 - **A shared scene with several cue files**: Pressing the button shows a menu, where you can choose the file to open.

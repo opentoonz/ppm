@@ -20,8 +20,8 @@ macOS 15 or later, Apple Silicon:
 
   Open PPM/PPM.app. The app is ad-hoc signed and not notarized. If macOS blocks
   this trusted build, use System Settings > Privacy & Security > Open Anyway.
-  External application launching, ZIP actions, and mixed Windows/macOS shared
-  production folders are outside the supported scope of this build.
+  Use Command+, to open Preferences and select your drawing and timesheet apps.
+  Mixed Windows/macOS production shares are outside the supported scope.
 
 Configuration details and limitations: docs/about/contributing.md
 License: LICENSE and stuff/LICENSE/
@@ -44,8 +44,8 @@ macOS 15 以降、Apple Silicon:
   PPM/PPM.app を起動します。アプリは ad-hoc 署名付きですが、公証はされていません。
   信頼できるビルドが macOS にブロックされた場合は、「システム設定」>
   「プライバシーとセキュリティ」>「このまま開く」で許可します。
-  外部アプリの起動、ZIP 操作、Windows と macOS が混在する制作共有フォルダでの
-  運用は、このビルドのサポート対象外です。
+  Command+, で環境設定を開き、作画用アプリとタイムシート用アプリを選べます。
+  Windows と macOS が混在する制作共有フォルダでの運用はサポート対象外です。
 
 設定方法と制限: docs/about/contributing.ja.md
 ライセンス: LICENSE と stuff/LICENSE/

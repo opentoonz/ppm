@@ -113,17 +113,17 @@ Start the application with `open build/PPM.app`. Keep the Qt installation availa
 
 PPM resolves a relative `StuffFolderPath` from `~/Library/Application Support/PPM`, independently of the app location and working directory. An absolute local path such as `/Volumes/anime/PPM/stuff` also works. Per-user settings are stored in `~/Library/Application Support/PPM/usersettings.ini`; see [The Stuff Folder](../administration/stuff-folder.md) and [Preferences](../using/preferences.md).
 
-The macOS source build covers startup and configuration. External application selection/launching, ZIP actions, and mixed Windows/macOS shared-folder workflows are not supported in this build. Use a separate test copy of the Stuff folder and production data when evaluating it; opening the sample project can update its progress files.
+The experimental macOS build supports external applications and the Zip Folder step. Mixed Windows/macOS production shares are still outside its supported scope. Use a separate test copy of the Stuff folder and production data when evaluating it. Opening the sample project can update its progress files.
 
-### Focused startup tests
+### Focused behavior tests
 
 Add `-DPPM_BUILD_TESTS=ON` to the configure command, build, and run:
 
 ```bash
-ctest --test-dir build -C Release -R '^ppm_(configuration|sceneinfotag|confirmation)_tests$' --output-on-failure
+ctest --test-dir build -C Release -R '^ppm_(configuration|sceneinfotag|confirmation|macos_operations)_tests$' --output-on-failure
 ```
 
-These tests cover configuration lookup, relative and absolute Stuff paths, the per-user settings location, scene-tag destruction during shutdown, and confirming or canceling forward and rewind actions. GitHub Actions builds the application and runs these tests on Windows x64 and macOS arm64 with Qt 6.12. Native UI startup and production file-server workflows require separate checks.
+GitHub Actions builds PPM with Qt 6.12 on Windows x64 and macOS arm64. Both platforms test configuration lookup, Stuff paths, per-user settings, scene-tag destruction, and confirming or canceling forward and rewind actions. The macOS tests also open documents in a test application, check OpenToonz argument delivery, and exercise ZIP creation and undo.
 
 ### Downloading CI application packages
 

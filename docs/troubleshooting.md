@@ -18,7 +18,7 @@ First, try the following. In many cases, this shows the cause.
 | The **Project** list is empty, and nothing is shown | PPM cannot find the Stuff folder. Check `StuffFolderPath` in `conf.ini`, which is in the same folder as `ppm.exe`. If you use backslashes (`\`), write each one twice, like `\\` (see [Installation](getting-started/installation.md)). If the Stuff folder is in a shared folder, also check that you can open that folder in Explorer. |
 | The project you want is not in the **Project** list | Check that the project file (`.ppmprj`) is in `projects` in the Stuff folder. A project that someone else has just created appears in the list after you restart PPM. |
 | "Warning: Translation file not found" is shown, and the screen is in English | The translation file for the language chosen in Preferences is not in the `loc` folder of the Stuff folder. Check that the file is at the path shown in the warning (see [UI Language and Translation Files](administration/translations.md)). |
-| A warning such as "Warning: TVPaint binary not found" is shown | The executable of the application set in Preferences is not at that path. Fix the path in [Preferences](using/preferences.md), or clear it. When it is empty, files are opened with the application associated with the extension in Windows. |
+| A warning such as "Warning: TVPaint binary not found" is shown | Choose the installed application in Preferences, or clear the path to use the system default for that extension. See [Preferences](using/preferences.md). |
 
 ## A scene does not appear in the list
 
@@ -41,7 +41,7 @@ The common causes are as follows.
 
 | Symptom | Cause and what to do |
 |---|---|
-| Pressing **Open** does not start the application | Check the path of the application in Preferences (see [Preferences](using/preferences.md)). When the path is empty, the file is opened with the application associated with the extension in Windows, so also check that the file opens when you double-click it in Explorer. When the application cannot be started, a message shows the path of the application and the file to open. |
+| Pressing **Open** does not start the application | Check the application path in Preferences. If it is empty, double-click the file in Explorer or Finder to check its default application. If a configured application cannot start, PPM shows its path and the file it tried to open. See [Preferences](using/preferences.md). |
 | The file does not open in OpenToonz | If **OpenToonz arguments** is set, check that it is a valid startup option of OpenToonz. If the file opens after you clear it, the arguments are the cause. |
 | Pressing **Open** opens the scene folder instead of a file | If the cue file is not a `.clip`, `.tvpp`, or `.tnz` file (for example, a text file used as a marker), opening the scene folder is the expected behavior (see [Working on a Scene](using/scene-operations.md)). |
 | **Open XDTS** is disabled | The timesheet is not found. PPM looks for a file that matches the "XDTS File Name" of the workflow group, in the standard scene folder. Check the name and location of the file (see [Workflow Groups](designing/workflow-groups.md)). |
