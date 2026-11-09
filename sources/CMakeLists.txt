@@ -128,6 +128,8 @@ set(SOURCES
 add_executable(${PROJECT_NAME} WIN32 ${HEADERS} ${SOURCES} ${RESOURCES} ${RC_FILE})
 
 if(APPLE)
+    set_source_files_properties(macos/ppm.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+    target_sources(${PROJECT_NAME} PRIVATE macos/ppm.icns)
     # The UI uses SVG icons. Resolve plugins from the same Qt installation as
     # the linked libraries, including when a global plugin directory exists.
     find_package(Qt6 REQUIRED COMPONENTS Svg)
@@ -136,6 +138,7 @@ if(APPLE)
         MACOSX_BUNDLE TRUE
         OUTPUT_NAME "PPM"
         MACOSX_BUNDLE_BUNDLE_NAME "PPM"
+        MACOSX_BUNDLE_ICON_FILE "ppm.icns"
         MACOSX_BUNDLE_GUI_IDENTIFIER "org.opentoonz.ppm"
         MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
         MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
