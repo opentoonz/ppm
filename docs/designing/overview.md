@@ -96,7 +96,7 @@ Put all these folders in a shared folder that everyone using PPM can read and wr
 Projects are designed in the **Project Settings** dialog.
 
 1. At the top of the main window, choose the project you want to design.
-2. Press the gear button (**Project Settings / Preferences**) and choose **Project Settings** from the menu.
+2. On macOS, choose **Project → Project Settings → Basics** from the menu bar. On Windows, choose **Project Settings** from the gear menu.
 
 ![The Project Settings dialog](../images/ja/designing/project-settings-dialog.png)
 <!-- English screenshot to be made: images/en/designing/project-settings-dialog.png -->

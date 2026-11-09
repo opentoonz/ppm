@@ -1063,6 +1063,10 @@ Check the path of the application in Preferences.</source>
 <context>
     <name>MyWindow</name>
     <message>
+        <source>Project</source>
+        <translation>プロジェクト</translation>
+    </message>
+    <message>
         <location filename="../mywindow.cpp" line="2026"/>
         <source>Switch between list view and flowchart view</source>
         <translation>一覧表示／フローチャート表示の切り替え</translation>

@@ -27,7 +27,7 @@ All rights reserved.
 - PPM は無保証です。PPM を使ったことで生じた損害について、著作権者や貢献者は責任を負いません。
 
 正式な条文は、配布物では Stuff フォルダの `LICENSE/LICENSE.txt` に、ソースコードではリポジトリ直下の `LICENSE` にあります。
-PPM の **PPM について**（**設定** のメニューから開きます）にも表示されます。
+PPM の **PPM について**（macOS の **PPM** メニューまたは Windows の歯車メニューから開きます）にも表示されます。
 上の説明は要約です。条文の内容が優先されます。
 
 ## サードパーティのライセンス（Qt）
@@ -38,7 +38,7 @@ Qt は、**GNU Lesser General Public License（LGPL）バージョン 3** のも
 - PPM は、Qt のライブラリを DLL として使っています（動的リンク）。配布物に含まれる `Qt6Core.dll` などの Qt のファイルは、Qt のものです。
 - LGPL の条件にしたがって、これらの DLL を、互換性のある別のビルドの Qt に置き換えることができます。
 - Qt のソースコードは、Qt の公式サイトから入手できます。
-- LGPL の条文は、Stuff フォルダの `LICENSE/LICENSE_qt.txt` にあります。LGPL v3 は GPL v3 に条件を追加する形の条文なので、GPL v3 の条文も `LICENSE/LICENSE_gpl3.txt` に入れています。どちらも、PPM の **PPM について**（**設定** のメニューから開きます）に表示されます。
+- LGPL の条文は、Stuff フォルダの `LICENSE/LICENSE_qt.txt` にあります。LGPL v3 は GPL v3 に条件を追加する形の条文なので、GPL v3 の条文も `LICENSE/LICENSE_gpl3.txt` に入れています。どちらも、PPM の **PPM について**（macOS の **PPM** メニューまたは Windows の歯車メニューから開きます）に表示されます。
 
 PPM が使っている主な Qt のモジュールは、Qt Core、Qt GUI、Qt Widgets、Qt Network、Qt Concurrent、Qt QML、Qt 5 Core Compatibility APIs です。
 

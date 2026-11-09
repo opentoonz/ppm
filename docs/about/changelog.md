@@ -3,7 +3,7 @@
 # Changelog
 
 This page lists what changed in each version of PPM, newest first.
-You can check the version of your PPM in **About PPM** in the **Project Settings / Preferences** (gear) menu.
+You can check the version of your PPM in **About PPM** in the **PPM** menu on macOS or the gear menu on Windows.
 
 ## 1.0 (YYYY-MM-DD)
 

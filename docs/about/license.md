@@ -27,7 +27,7 @@ The conditions are as follows.
 - PPM comes with no warranty. The copyright holder and the contributors are not liable for any damage caused by using PPM.
 
 The full license text is in `LICENSE/LICENSE.txt` in the Stuff folder of the distribution, and in `LICENSE` in the root of the repository for the source code.
-It is also shown in **About PPM** in PPM (open it from the **Project Settings / Preferences** menu).
+It is also shown in **About PPM** in PPM (open it from the **PPM** menu on macOS or the gear menu on Windows).
 The description above is a summary. The license text takes precedence.
 
 ## Third-party licenses (Qt)
@@ -38,7 +38,7 @@ Qt is used under the **GNU Lesser General Public License (LGPL) version 3**.
 - PPM uses the Qt libraries as DLLs (dynamic linking). The Qt files in the distribution, such as `Qt6Core.dll`, belong to Qt.
 - Under the terms of the LGPL, you can replace these DLLs with another compatible build of Qt.
 - The source code of Qt is available from the official Qt website.
-- The LGPL text is in `LICENSE/LICENSE_qt.txt` in the Stuff folder. Because LGPL v3 is written as additional permissions to GPL v3, the GPL v3 text is also included in `LICENSE/LICENSE_gpl3.txt`. Both are shown in **About PPM** in PPM (open it from the **Project Settings / Preferences** menu).
+- The LGPL text is in `LICENSE/LICENSE_qt.txt` in the Stuff folder. Because LGPL v3 is written as additional permissions to GPL v3, the GPL v3 text is also included in `LICENSE/LICENSE_gpl3.txt`. Both are shown in **About PPM** in PPM (open it from the **PPM** menu on macOS or the gear menu on Windows).
 
 The main Qt modules used by PPM are Qt Core, Qt GUI, Qt Widgets, Qt Network, Qt Concurrent, Qt QML, and Qt 5 Core Compatibility APIs.
 

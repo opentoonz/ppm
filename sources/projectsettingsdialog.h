@@ -296,6 +296,7 @@ protected slots:
 class ProjectSettingsDialog : public QDialog {
   Q_OBJECT
 
+  QListWidget* m_categoryList;
   BasicsPage* m_basicsPage;
   PathMacrosPage* m_pathMacrosPage;
   WfGroupsPage* m_wfGroupsPage;
@@ -315,6 +316,8 @@ class ProjectSettingsDialog : public QDialog {
 
 public:
   ProjectSettingsDialog(QWidget* parent = nullptr);
+  static QStringList categoryNames();
+  void selectCategory(int row);
 
   void refresh();
   // Save成功時に保存先として使われたプロジェクトID名。まだSaveされていない場合は空文字列

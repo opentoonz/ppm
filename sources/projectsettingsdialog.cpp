@@ -4869,17 +4869,21 @@ void WorkflowPage::rebuildStepDetail() {
 
 //--------------------------------
 
+QStringList ProjectSettingsDialog::categoryNames() {
+  return {tr("Basics"),    tr("Path Macros"),      tr("Workflow Groups"),
+          tr("Info Tags"), tr("Workflows - List"), tr("Workflows - Flowchart")};
+}
+
+void ProjectSettingsDialog::selectCategory(int row) {
+  m_categoryList->setCurrentRow(row);
+}
+
 ProjectSettingsDialog::ProjectSettingsDialog(QWidget* parent)
     : QDialog(parent) {
-  QListWidget* categoryList = new QListWidget(this);
-  QStringList categories;
-  categories << tr("Basics") << tr("Path Macros") << tr("Workflow Groups")
-             << tr("Info Tags") << tr("Workflows - List")
-             << tr("Workflows - Flowchart");
-
-  categoryList->addItems(categories);
-  categoryList->setFixedWidth(160);
-  categoryList->setCurrentRow(0);
+  m_categoryList = new QListWidget(this);
+  m_categoryList->addItems(categoryNames());
+  m_categoryList->setFixedWidth(160);
+  selectCategory(0);
 
   m_projectNameEdit     = new QLineEdit(this);
   QPushButton* saveBtn  = new QPushButton(tr("Save"), this);
@@ -4910,7 +4914,7 @@ ProjectSettingsDialog::ProjectSettingsDialog(QWidget* parent)
     leftLay->setContentsMargins(3, 3, 3, 3);
     leftLay->setSpacing(5);
     {
-      leftLay->addWidget(categoryList, 0);
+      leftLay->addWidget(m_categoryList, 0);
 
       leftLay->addStretch(1);
 
@@ -4942,7 +4946,7 @@ ProjectSettingsDialog::ProjectSettingsDialog(QWidget* parent)
   }
   setLayout(mainLay);
 
-  connect(categoryList, &QListWidget::currentRowChanged, this,
+  connect(m_categoryList, &QListWidget::currentRowChanged, this,
           [this, stackedWidget](int index) {
             stackedWidget->setCurrentIndex(index);
             // "Workflow Groups"／"Workflows"／"Workflows -

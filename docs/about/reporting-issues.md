@@ -20,7 +20,7 @@ When you report a bug, the following information helps find the cause.
 
 | Information | How to find it |
 |---|---|
-| The version of PPM | Open **About PPM** from the **Project Settings / Preferences** (gear) menu. The version and the build date are shown. |
+| The version of PPM | Open **About PPM** from the **PPM** menu on macOS or the gear menu on Windows. The version and the build date are shown. |
 | The version of Windows | Windows 10 or 11. |
 | The language of PPM | **Language** in [Preferences](../using/preferences.md). |
 | What you did | Write the buttons you pressed and the workflows and actions you chose, in order. |

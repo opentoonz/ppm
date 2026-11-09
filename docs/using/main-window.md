@@ -27,12 +27,14 @@ The width of the left part and the display state are kept the next time you star
 |---|---|
 | **Switch between list view and flowchart view** (arrow icon) | Switches the workflow selection between the list view and the flowchart view. |
 | **Project** | Selects the project to use. The projects in the `projects` folder of the Stuff folder are listed. |
-| **Project Settings / Preferences** (gear icon) | Opens **Project Settings**, **Preferences**, or **About PPM** from the menu. |
+| **Project Settings / Preferences** (Windows gear icon) | Opens **Project Settings**, **Preferences**, or **About PPM** from the menu. |
 | **Episode** | Selects the episode to work on. Shown only in projects that use episodes. |
 | **Refresh** | Rebuilds the scene list (see [Which Scenes Appear in the List](scene-list.md)). |
 | **Register** | Registers scenes to a workflow group, and sets or removes scene info tags (see [Registering Scenes](registering-scenes.md)). |
 | **Retake** | Issues retakes for scenes (see [Retakes](retakes.md)). |
 | **Scene Number** / **Search Scene** (magnifier icon) | Shows the current state of a scene (see "Scene search" below). |
+
+On macOS, the **PPM** menu contains About PPM and settings. Choose a page under **Project → Project Settings** to open that page directly. You can also switch pages in the dialog’s sidebar.
 
 ### Switching episodes
 
