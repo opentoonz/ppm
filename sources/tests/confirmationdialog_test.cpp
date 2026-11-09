@@ -93,6 +93,33 @@ private slots:
     QCOMPARE(manager->currentRewindSuffix("0001"), QString("_r"));
   }
 
+#ifdef Q_OS_MACOS
+  void zipCueFolderAndUndo() {
+    QTemporaryDir temp;
+    QVERIFY(temp.isValid());
+    const QString folder = temp.filePath("drawings");
+    QVERIFY(QDir().mkdir(folder));
+    QFile cue(folder + "/0001.clip");
+    QVERIFY(cue.open(QIODevice::WriteOnly));
+    QCOMPARE(cue.write("drawing"), qint64(7));
+    cue.close();
+    const QString zip = temp.filePath("0001.zip");
+    const ActionStep step{Step_ZipFolder, {QString(), zip}};
+    QString log;
+    QVariant checkSum;
+    StepExecutor_ZipFolder forward(step, cue.fileName(), "00", "0001", false);
+    QVERIFY2(forward.execute(log, checkSum), qPrintable(log));
+    QCOMPARE(checkSum.toString(), zip);
+    QVERIFY(QFileInfo::exists(zip));
+    StepExecutor_ZipFolder undo(step, cue.fileName(), "00", "0001", true);
+    undo.setCheckSum(checkSum);
+    QVERIFY2(undo.execute(log, checkSum), qPrintable(log));
+    QVERIFY(!QFileInfo::exists(zip));
+    QVERIFY(cue.open(QIODevice::ReadOnly));
+    QCOMPARE(cue.readAll(), QByteArray("drawing"));
+  }
+#endif
+
 private:
   static void press(QDialog& dialog, const QString& label) {
     for (auto* button : dialog.findChildren<QPushButton*>()) {

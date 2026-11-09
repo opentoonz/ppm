@@ -1,4 +1,5 @@
 #include "actionconfirmationdialog.h"
+#include "platform.h"
 #include "workflow.h"
 #include "googlegateway.h"
 #include "googlechatgateway.h"
@@ -28,7 +29,6 @@
 #include <QTabWidget>
 #include <QSet>
 #include <QScrollArea>
-#include <QProcess>
 #include <QPlainTextEdit>
 #include <QDateTime>
 #include <algorithm>
@@ -3924,7 +3924,6 @@ bool StepExecutor_ZipFolder::execute(QString& log, QVariant& checkSum) {
 
     // 操作に使うここで、難読化マクロをデコードして、実際のパスにする（画面・ログには、マクロのままのパスを使う）
     QString fromPath = realPath(m_orgFolderPath);
-    fromPath         = fromPath + "/*";
 
     QString toPath = realPath(m_zipFilePath);
 
@@ -3964,15 +3963,7 @@ bool StepExecutor_ZipFolder::execute(QString& log, QVariant& checkSum) {
       }
     }
 
-    QString program = "powershell.exe";
-
-    QStringList arguments;
-    arguments << "-Command" << "compress-archive" << "-Force" << fromPath
-              << toPath;
-
-    QProcess proc;
-    proc.start(program, arguments);
-    ok = ok && proc.waitForFinished(-1);
+    ok = Platform::zipFolder(fromPath, toPath);
 
     checkSum = m_zipFilePath;
     if (ok)
