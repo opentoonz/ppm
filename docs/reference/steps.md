@@ -148,7 +148,7 @@ Packs a folder into a ZIP file.
 | **Source Folder (optional)** | The folder to pack. If empty, the folder of the cue file. |
 | **Destination Zip Path** | The path of the ZIP file to create. |
 
-- On macOS, choose a ZIP path outside the source folder. The ZIP contains the folder's contents, including hidden files. Entry names use UTF-8.
+- The destination ZIP may be inside the source folder. On macOS, PPM skips the output archive and files or folders whose names start with a dot (such as `.DS_Store`). Entry names use UTF-8.
 - If a ZIP file with the same name exists, a message asks whether to overwrite it. If the destination folder does not exist, a message asks whether to create it.
 - **Undo**: Deletes the created ZIP file.
 

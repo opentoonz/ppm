@@ -103,7 +103,7 @@ private slots:
     QVERIFY(cue.open(QIODevice::WriteOnly));
     QCOMPARE(cue.write("drawing"), qint64(7));
     cue.close();
-    const QString zip = temp.filePath("0001.zip");
+    const QString zip = folder + "/0001.zip";
     const ActionStep step{Step_ZipFolder, {QString(), zip}};
     QString log;
     QVariant checkSum;

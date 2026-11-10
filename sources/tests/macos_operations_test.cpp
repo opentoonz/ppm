@@ -26,7 +26,7 @@ private slots:
     QTemporaryDir temp;
     QVERIFY(temp.isValid());
     const QString bundle = temp.filePath("Document Receiver.app");
-    const QString file   = temp.filePath("原画 ' [01].xdts");
+    const QString file   = temp.filePath("原画 ' [01].clip");
     QVERIFY(writeFile(file, "document"));
     // A native document-open handler records the path that actually arrived.
     const QString handler = R"(on open receivedFiles
@@ -112,27 +112,53 @@ private slots:
     QCOMPARE(
         QProcess::execute("/usr/bin/ditto", {"-x", "-k", zip, replacement}), 0);
     QVERIFY(!QFileInfo::exists(replacement + entry));
-    QCOMPARE(readFile(replacement + "/.notes"), QByteArray("notes"));
+    QVERIFY(!QFileInfo::exists(replacement + "/.notes"));
 
     const QByteArray previous = readFile(zip);
     QVERIFY(!Platform::zipFolder(temp.filePath("missing"), zip));
-    QVERIFY(QFile::setPermissions(folder + "/.notes", {}));
-    if (!QFileInfo(folder + "/.notes").isReadable())
+    QVERIFY(writeFile(folder + "/unreadable", "data"));
+    QVERIFY(QFile::setPermissions(folder + "/unreadable", {}));
+    if (!QFileInfo(folder + "/unreadable").isReadable())
       QVERIFY(!Platform::zipFolder(folder, zip));
     QCOMPARE(readFile(zip), previous);
+  }
+
+  void zipInsideSource() {
+    QTemporaryDir temp;
+    QVERIFY(temp.isValid());
+    const QString folder = temp.filePath("Source");
+    QVERIFY(QDir().mkpath(folder + "/nested/.private"));
+    QVERIFY(writeFile(folder + "/nested/.private/secret", "hidden"));
+    QVERIFY(writeFile(folder + "/.DS_Store", "metadata"));
+    QVERIFY(writeFile(folder + "/nested/.notes", "metadata"));
+    QVERIFY(writeFile(folder + "/nested/shot1.zip", "keep"));
+    QVERIFY(writeFile(folder + "/日本語.txt", "drawing"));
+    const QString alias = temp.filePath("alias");
+    QVERIFY(QFile::link(folder + "/nested", alias));
+    const QString zip = alias + "/shot[1].zip";
+    for (int pass = 0; pass < 2; ++pass) {
+      QVERIFY(Platform::zipFolder(folder, zip));
+      QProcess reader;
+      reader.start(
+          "python3",
+          {"-c",
+           "import sys, zipfile\n"
+           "with zipfile.ZipFile(sys.argv[1]) as z:\n"
+           "    assert sorted(z.namelist()) == "
+           "['nested/', 'nested/shot1.zip', '日本語.txt'], z.namelist()\n"
+           "    assert z.testzip() is None",
+           zip});
+      QVERIFY(reader.waitForFinished());
+      QVERIFY2(reader.exitCode() == 0,
+               reader.readAllStandardError().constData());
+    }
   }
 
   void rejectUnsafeZipDestination() {
     QTemporaryDir temp;
     QVERIFY(temp.isValid());
     const QString folder = temp.filePath("Source");
-    QVERIFY(QDir().mkpath(folder + "/nested"));
-    QVERIFY(!Platform::zipFolder(folder, folder + "/self.zip"));
-    const QString alias = temp.filePath("alias");
-    QVERIFY(QFile::link(folder + "/nested", alias));
-    QVERIFY(!Platform::zipFolder(folder, alias + "/self.zip"));
-    if (QFileInfo::exists(temp.filePath("source")))
-      QVERIFY(!Platform::zipFolder(folder, temp.filePath("source/self.zip")));
+    QVERIFY(QDir().mkdir(folder));
     const QString target = folder + "/unwritten.zip";
     const QString link   = temp.filePath("link.zip");
     QVERIFY(QFile::link(target, link));

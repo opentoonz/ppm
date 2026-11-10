@@ -5,7 +5,9 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QSaveFile>
+#include <QTemporaryFile>
 #include <cerrno>
+#include <filesystem>
 #include <unistd.h>
 #endif
 
@@ -31,6 +33,34 @@ bool openFile(const QString& application, const QString& file, OpenMode mode,
   return QProcess::startDetached(application, arguments);
 }
 
+#ifdef Q_OS_MACOS
+// Freeze the member list before QSaveFile creates its output in the source
+// tree. NUL separators preserve filenames containing newlines or spaces.
+static bool writeZipMembers(const QFileInfo& folder, const QFileInfo& zip,
+                            QTemporaryFile& members) {
+  namespace fs           = std::filesystem;
+  const fs::path root    = folder.filesystemAbsoluteFilePath();
+  const bool overwriting = zip.exists();
+  std::error_code error;
+  fs::recursive_directory_iterator it(root, error), end;
+  for (; !error && it != end; it.increment(error)) {
+    const fs::path& path = it->path();
+    if (path.filename().native().front() == '.') {
+      it.disable_recursion_pending();
+      continue;
+    }
+    if (overwriting) {
+      const QFileInfo entry(path);
+      if (!entry.isSymLink() && entry == zip) continue;
+    }
+    const std::string name = "./" + path.lexically_relative(root).native();
+    const qint64 length    = static_cast<qint64>(name.size()) + 1;
+    if (members.write(name.c_str(), length) != length) return false;
+  }
+  return !error && members.flush();
+}
+#endif
+
 bool zipFolder(const QString& source, const QString& destination) {
   QProcess process;
 #ifdef Q_OS_MACOS
@@ -41,12 +71,8 @@ bool zipFolder(const QString& source, const QString& destination) {
       parent.isEmpty() || zip.isSymLink() || (zip.exists() && !zip.isFile()))
     return false;
 
-  // The temporary output must be outside the input tree, including when the
-  // destination is reached through a symlink or a case-insensitive volume.
-  QDir ancestor(parent);
-  do {
-    if (QFileInfo(ancestor.path()) == folder) return false;
-  } while (ancestor.cdUp());
+  QTemporaryFile members(QDir::temp().filePath(".ppm-zip-members-XXXXXX"));
+  if (!members.open() || !writeZipMembers(folder, zip, members)) return false;
 
   QSaveFile archive(destination);
   if (!archive.open(QIODevice::WriteOnly)) return false;
@@ -61,7 +87,8 @@ bool zipFolder(const QString& source, const QString& destination) {
   process.start("/usr/bin/tar",
                 {"-cf", "/dev/fd/1", "--format", "zip", "--options",
                  "zip:hdrcharset=UTF-8", "--no-mac-metadata", "-s",
-                 ",^\\./*,,S", "-C", folder.absoluteFilePath(), "."});
+                 ",^\\./*,,S", "-C", folder.absoluteFilePath(),
+                 "--no-recursion", "--null", "-T", members.fileName()});
   return process.waitForFinished(-1) &&
          process.exitStatus() == QProcess::NormalExit &&
          process.exitCode() == 0 && archive.commit();
