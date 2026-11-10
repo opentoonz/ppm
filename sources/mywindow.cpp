@@ -1097,7 +1097,7 @@ void MyTable::onOpenXdtsButtonClicked() {
       showOpenWithDefaultAppFailedMessage(path);
     return;
   }
-  if (!Platform::openFile(program, path))
+  if (!Platform::openFile(program, path, Platform::OpenMode::CommandLine))
     showStartProgramFailedMessage(program, path);
 }
 

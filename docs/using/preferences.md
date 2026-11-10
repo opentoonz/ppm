@@ -23,7 +23,7 @@ This page summarizes what each item does and where the settings are saved.
 | **OpenToonz arguments** | Startup options added when opening `.tnz` files in OpenToonz. They are passed before the path of the file. You can write several options separated by spaces. Enclose a value that contains spaces in `"`. |
 | **User Name [USER_NAME]** | The name substituted for `[USER_NAME]` in the project settings. If empty, the login name is used. |
 
-On macOS, use the **...** button to select an application (`.app`), or enter the path to its executable. PPM asks macOS to open drawings and timesheets in the selected application. For an OpenToonz `.app`, PPM starts a new instance and passes the scene path after any startup options.
+On macOS, use the **...** button to select an application (`.app`), or enter the path to its executable. PPM asks macOS to open TVPaint and CLIP STUDIO PAINT drawings in the selected application. For a configured XDTS viewer, PPM launches the viewer with the timesheet path as a command-line argument. For an OpenToonz `.app`, PPM starts a new instance and passes the scene path after any startup options.
 
 For an item whose application path is empty, the operating system opens the file with its default application for that extension.
 In that case, the OpenToonz arguments are not used.

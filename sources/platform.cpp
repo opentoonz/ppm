@@ -17,8 +17,8 @@ bool openFile(const QString& application, const QString& file, OpenMode mode,
   const QFileInfo app(QDir::cleanPath(application));
   if (app.isDir() && app.suffix().compare("app", Qt::CaseInsensitive) == 0) {
     QStringList arguments{"-a", app.absoluteFilePath()};
-    // A document-open event can go to a running app. OpenToonz reads its
-    // scene and options from argv, which requires a newly launched process.
+    // A document-open event can go to a running app. OpenToonz and XDTS
+    // viewers receive the file via argv in a newly launched process.
     if (mode == OpenMode::CommandLine) arguments << "-n" << "--args" << options;
     arguments << QFileInfo(file).absoluteFilePath();
     return QProcess::execute("/usr/bin/open", arguments) == 0;
