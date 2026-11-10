@@ -110,6 +110,12 @@ QString FolderPathField::text() const { return m_edit->text(); }
 //--------------------------------
 
 namespace {
+QFormLayout* newProjectFormLayout(QWidget* parent = nullptr) {
+  auto* layout = new QFormLayout(parent);
+  layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+  return layout;
+}
+
 // 入力欄の文字列を、投稿先の名前のリストにする（カンマかセミコロン区切り。全角の「、」「，」「；」も区切りとして扱う。
 // 前後の空白と、空の名前、重複は除く）
 QStringList parseChatDestinationNames(const QString& text) {
@@ -1438,9 +1444,8 @@ void InfoTagsPage::rebuildDetailPanel() {
   };
   updatePreview();
 
-  QFormLayout* formLay = new QFormLayout();
+  QFormLayout* formLay = newProjectFormLayout();
   formLay->setContentsMargins(0, 0, 0, 0);
-  // formLay->setFieldGrowthPolicy(QFormLayout::FieldsStayAtSizeHint);
 
   QLineEdit* idNameEdit = new QLineEdit(tag->idName());
   connect(idNameEdit, &QLineEdit::editingFinished, this,
@@ -1525,7 +1530,7 @@ void InfoTagsPage::rebuildDetailPanel() {
   case InfoTagType_StringList: {
     SceneInfoTagDisplayProperties prop = tag->displayProperties();
 
-    QFormLayout* propLay = new QFormLayout();
+    QFormLayout* propLay = newProjectFormLayout();
     propLay->setContentsMargins(0, 0, 0, 0);
 
     QLineEdit* labelEdit       = new QLineEdit(prop.labelTxt);
@@ -2132,7 +2137,7 @@ void buildStepStringField(
                         ? step.params.at(paramIndex).toString()
                         : QString();
 
-  QFormLayout* fl = new QFormLayout();
+  QFormLayout* fl = newProjectFormLayout();
   fl->setContentsMargins(0, 0, 0, 0);
   QLineEdit* edit = new QLineEdit(value, parentWidget);
   if (!tooltip.isEmpty()) edit->setToolTip(tooltip);
@@ -2176,7 +2181,7 @@ void buildStepMacroLineField(
                         ? step.params.at(paramIndex).toString()
                         : QString();
 
-  QFormLayout* fl = new QFormLayout();
+  QFormLayout* fl = newProjectFormLayout();
   fl->setContentsMargins(0, 0, 0, 0);
   MacroLineEdit* edit = new MacroLineEdit(parentWidget);
   edit->setText(value);
@@ -2216,7 +2221,7 @@ void buildStepBoolField(QVBoxLayout* parentLay, QWidget* parentWidget,
                         ? step.params.at(paramIndex).toBool()
                         : false;
 
-  QFormLayout* fl = new QFormLayout();
+  QFormLayout* fl = newProjectFormLayout();
   fl->setContentsMargins(0, 0, 0, 0);
   QCheckBox* check = new QCheckBox(parentWidget);
   check->setChecked(value);
@@ -2267,7 +2272,7 @@ void buildStepMultiLineField(
                         ? step.params.at(paramIndex).toString()
                         : QString();
 
-  QFormLayout* fl = new QFormLayout();
+  QFormLayout* fl = newProjectFormLayout();
   fl->setContentsMargins(0, 0, 0, 0);
   CommitPlainTextEdit* edit = new CommitPlainTextEdit(parentWidget);
   edit->setPlainText(value);
@@ -2303,7 +2308,7 @@ void buildStepChatDestinationField(QVBoxLayout* parentLay,
                         ? step.params.at(paramIndex).toString()
                         : QString();
 
-  QFormLayout* fl = new QFormLayout();
+  QFormLayout* fl = newProjectFormLayout();
   fl->setContentsMargins(0, 0, 0, 0);
   QComboBox* combo = new QComboBox(parentWidget);
   combo->addItem(QObject::tr("(Not selected)"), QString());
@@ -2341,7 +2346,7 @@ void buildStepFlowGroupField(QVBoxLayout* parentLay, QWidget* parentWidget,
                            ? step.params.at(paramIndex).toUInt()
                            : 0;
 
-  QFormLayout* fl = new QFormLayout();
+  QFormLayout* fl = newProjectFormLayout();
   fl->setContentsMargins(0, 0, 0, 0);
   QComboBox* combo = new QComboBox(parentWidget);
   for (auto fgId : tmpSettings.flowGroupInfos.keys())
@@ -2369,7 +2374,7 @@ void buildStepWorkflowField(QVBoxLayout* parentLay, QWidget* parentWidget,
                            ? step.params.at(paramIndex).toUInt()
                            : 0;
 
-  QFormLayout* fl = new QFormLayout();
+  QFormLayout* fl = newProjectFormLayout();
   fl->setContentsMargins(0, 0, 0, 0);
   QComboBox* combo = new QComboBox(parentWidget);
   for (auto& wf : tmpSettings.workflows)
@@ -2398,7 +2403,7 @@ void buildStepInfoNameField(QVBoxLayout* parentLay, QWidget* parentWidget,
                         ? step.params.at(paramIndex).toString()
                         : QString();
 
-  QFormLayout* fl = new QFormLayout();
+  QFormLayout* fl = newProjectFormLayout();
   fl->setContentsMargins(0, 0, 0, 0);
   QComboBox* combo = new QComboBox(parentWidget);
   for (auto* tag : tmpSettings.sceneInfoTags)
@@ -2552,7 +2557,7 @@ void buildStepCopyFolderContentsModeField(QVBoxLayout* parentLay,
 
   //--- 対象の選び方
   QGroupBox* selectionBox = new QGroupBox(QObject::tr("Target Selection"), box);
-  QFormLayout* selectionLay = new QFormLayout(selectionBox);
+  QFormLayout* selectionLay = newProjectFormLayout(selectionBox);
 
   QComboBox* selectionCombo = new QComboBox(parentWidget);
   selectionCombo->addItem(QObject::tr("All selected"), (int)Options::All);
@@ -2594,7 +2599,7 @@ void buildStepCopyFolderContentsModeField(QVBoxLayout* parentLay,
 
   //---
   //転送方式（項目が1つだけなので、グループボックスは使わず、縦方向の大きさを節約する）
-  QFormLayout* transferLay = new QFormLayout();
+  QFormLayout* transferLay = newProjectFormLayout();
   QComboBox* transferCombo = new QComboBox(parentWidget);
   transferCombo->addItem(QObject::tr("Copy"), false);
   transferCombo->addItem(QObject::tr("Move"), true);
@@ -2613,7 +2618,7 @@ void buildStepCopyFolderContentsModeField(QVBoxLayout* parentLay,
   nameBox->setToolTip(
       QObject::tr("When several are selected, they are applied in this order: "
                   "Rename Rule, Take Suffix, Flatten subfolders."));
-  QFormLayout* nameLay = new QFormLayout(nameBox);
+  QFormLayout* nameLay = newProjectFormLayout(nameBox);
 
   // リネームルール：Stuffフォルダのrename_scriptsに置いたスクリプトから選ぶ
   QComboBox* renameRuleCombo = new QComboBox(parentWidget);
@@ -2716,7 +2721,7 @@ void buildStepCopyFolderContentsModeField(QVBoxLayout* parentLay,
 
   //--- 内容の変換と、同名のファイルがコピー先にあるときの処理
   //    （それぞれ項目が1つだけなので、グループボックスは使わず、縦方向の大きさを節約する）
-  QFormLayout* contentConflictLay = new QFormLayout();
+  QFormLayout* contentConflictLay = newProjectFormLayout();
   QCheckBox* convertToJpgCheck =
       new QCheckBox(QObject::tr("Convert to JPEG"), parentWidget);
   convertToJpgCheck->setChecked(mode.convertToJpg);
@@ -2871,7 +2876,7 @@ void buildStepCheckExistenceModeField(QVBoxLayout* parentLay,
                                 : QString();
   CheckExistenceMode mode = parseCheckExistenceMode(modeStr);
 
-  QFormLayout* fl = new QFormLayout();
+  QFormLayout* fl = newProjectFormLayout();
   fl->setContentsMargins(0, 0, 0, 0);
 
   QComboBox* modeCombo = new QComboBox(parentWidget);
@@ -2921,7 +2926,7 @@ void buildStepParamsForm(
     bool allowNone                                         = false) {
   ActionStep step = readStep(editor);
 
-  QFormLayout* typeFormLay = new QFormLayout();
+  QFormLayout* typeFormLay = newProjectFormLayout();
   typeFormLay->setContentsMargins(0, 0, 0, 0);
   QComboBox* typeCombo = new QComboBox(parentWidget);
   if (allowNone)
@@ -4066,7 +4071,7 @@ void WorkflowPage::rebuildColumn2() {
   if (m_currentProtocolIndex < 0 && !wf.protocols.isEmpty())
     m_currentProtocolIndex = 0;
 
-  QFormLayout* formLay = new QFormLayout();
+  QFormLayout* formLay = newProjectFormLayout();
   formLay->setContentsMargins(0, 0, 0, 0);
 
   // IDはユーザーが編集できない内部管理用の値（自動採番）。参照用に表示のみ行う
@@ -4306,7 +4311,7 @@ void WorkflowPage::rebuildColumn3() {
   if (m_currentActionIndex < 0 && !protocol.actions.isEmpty())
     m_currentActionIndex = 0;
 
-  QFormLayout* formLay = new QFormLayout();
+  QFormLayout* formLay = newProjectFormLayout();
   formLay->setContentsMargins(0, 0, 0, 0);
 
   QComboBox* mediaCombo = new QComboBox();
@@ -4595,7 +4600,7 @@ void WorkflowPage::rebuildColumn4() {
   // このActionが選択された際、Stepが1つ以上あれば先頭を自動選択する
   if (m_currentStepIndex < 0 && !action.steps.isEmpty()) m_currentStepIndex = 0;
 
-  QFormLayout* formLay = new QFormLayout();
+  QFormLayout* formLay = newProjectFormLayout();
   formLay->setContentsMargins(0, 0, 0, 0);
 
   QLineEdit* nameEdit = new QLineEdit(action.actionName);
