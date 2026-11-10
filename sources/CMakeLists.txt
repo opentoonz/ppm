@@ -95,6 +95,7 @@ qt6_add_resources(SOURCES ${RESOURCES})
 set(LANGUAGES ja)
 # 翻訳対象のファイルを設定する。
 SET(TRANSLATION_TARGET_FILES
+    translations/macos_menu.cpp
     ${HEADERS}
     ${SOURCES}
 )

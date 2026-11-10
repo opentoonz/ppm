@@ -1061,6 +1061,44 @@ Check the path of the application in Preferences.</source>
     </message>
 </context>
 <context>
+    <name>MAC_APPLICATION_MENU</name>
+    <message>
+        <location filename="macos_menu.cpp" line="5"/>
+        <source>About %1</source>
+        <translation>%1 について</translation>
+    </message>
+    <message>
+        <location filename="macos_menu.cpp" line="6"/>
+        <source>Preferences...</source>
+        <translation>設定...</translation>
+    </message>
+    <message>
+        <location filename="macos_menu.cpp" line="7"/>
+        <source>Services</source>
+        <translation>サービス</translation>
+    </message>
+    <message>
+        <location filename="macos_menu.cpp" line="8"/>
+        <source>Hide %1</source>
+        <translation>%1 を隠す</translation>
+    </message>
+    <message>
+        <location filename="macos_menu.cpp" line="9"/>
+        <source>Hide Others</source>
+        <translation>ほかを隠す</translation>
+    </message>
+    <message>
+        <location filename="macos_menu.cpp" line="10"/>
+        <source>Show All</source>
+        <translation>すべて表示</translation>
+    </message>
+    <message>
+        <location filename="macos_menu.cpp" line="11"/>
+        <source>Quit %1</source>
+        <translation>%1 を終了</translation>
+    </message>
+</context>
+<context>
     <name>MyWindow</name>
     <message>
         <source>Project</source>
