@@ -6,6 +6,8 @@
 #include "actionconfirmationdialog.h"  // StepExecutor_NotifyGoogleChat::defaultMessageTemplate()
 
 #include <QApplication>
+#include <QInputDialog>
+#include "usersettings.h"
 #include <QTextLayout>
 #include <QMimeData>
 #include <QPlainTextEdit>
@@ -70,6 +72,90 @@ static void remapFlowGroupReferencesInTmpSettings(FlowGroupId oldId,
 static int countFlowGroupReferencesInTmpSettings(const QSet<FlowGroupId>& ids);
 
 //--------------------------------
+namespace {
+const PathMappings& mappings() {
+  return UserSettings::instance()->pathMappings();
+}
+
+QString pathTip(const QString& stored) {
+  if (mappings().rows.isEmpty() || !PathMappings::isAbsolute(stored)) return {};
+  bool matched;
+  mappings().toLocal(stored, &matched);
+  return matched ? QObject::tr("Stored path: %1").arg(stored)
+                 : QObject::tr(
+                       "No mapping for this absolute path on this machine: %1")
+                       .arg(stored);
+}
+
+template <class Field>
+void showProjectPath(Field* field, const QString& stored) {
+  if (!field->property("originalPathHelp").isValid())
+    field->setProperty("originalPathHelp", field->toolTip());
+  QStringList help{field->property("originalPathHelp").toString(),
+                   pathTip(stored)};
+  help.removeAll(QString());
+  field->setToolTip(help.join("\n"));
+  if (field->text() != mappings().toLocal(stored))
+    field->setText(mappings().toLocal(stored));
+}
+
+QString editedProjectPath(QWidget* parent, const QString& original,
+                          const QString& input) {
+  if (input == mappings().toLocal(original)) return original;
+  if (mappings().rows.isEmpty() || !PathMappings::isAbsolute(input))
+    return input;
+  bool storedForm;
+  mappings().toLocal(input, &storedForm);
+  QStringList choices = mappings().storedCandidates(input);
+  if (storedForm && !choices.contains(input)) choices.prepend(input);
+  if (choices.size() == 1) return choices.first();
+  if (!choices.isEmpty()) {
+    bool ok;
+    const QString chosen = QInputDialog::getItem(
+        parent, QObject::tr("Shared folder mappings"),
+        QObject::tr("Choose the path to store in the project."), choices, 0,
+        false, &ok);
+    return ok ? chosen : original;
+  }
+  return QMessageBox::warning(
+             parent, QObject::tr("Shared folder mappings"),
+             QObject::tr("No mapping matches %1. This path may not work on "
+                         "other machines. Save it as entered?")
+                 .arg(input),
+             QMessageBox::Save | QMessageBox::Cancel,
+             QMessageBox::Cancel) == QMessageBox::Save
+             ? input
+             : original;
+}
+
+template <class Field>
+QString readProjectPath(Field* field, const QString& stored) {
+  const QSignalBlocker blocker(field);
+  const QString selected = editedProjectPath(field, stored, field->text());
+  showProjectPath(field, selected);
+  return selected;
+}
+
+void showProjectPath(QTableWidgetItem* item, const QString& stored) {
+  item->setText(mappings().toLocal(stored));
+  item->setToolTip(pathTip(stored));
+}
+
+QTableWidgetItem* pathItemFor(const QString& stored) {
+  auto* item = new QTableWidgetItem;
+  showProjectPath(item, stored);
+  return item;
+}
+
+QString readProjectPath(QTableWidgetItem* item, const QString& original) {
+  auto* table = item->tableWidget();
+  const QSignalBlocker blocker(table);
+  QString stored = editedProjectPath(table, original, item->text());
+  showProjectPath(item, stored);
+  return stored;
+}
+}  // namespace
+
 FolderPathField::FolderPathField(QWidget* parent) : QWidget(parent) {
   m_edit                     = new QLineEdit(this);
   QPushButton* browserButton = new QPushButton("...", this);
@@ -93,7 +179,9 @@ FolderPathField::FolderPathField(QWidget* parent) : QWidget(parent) {
 void FolderPathField::onBrowserButtonClicked() {
   // 相対パスはStuffフォルダ起点として解釈する
   QString initPath =
-      WorkflowManager::resolvePathFromStuffFolder(m_edit->text());
+      PathMappings::isAbsolute(m_edit->text())
+          ? m_edit->text()
+          : WorkflowManager::resolvePathFromStuffFolder(m_edit->text());
 
   QString ret = QFileDialog::getExistingDirectory(
       this, tr("Specify Folder"), (initPath.isEmpty()) ? "/home" : initPath,
@@ -360,11 +448,12 @@ void BasicsPage::refresh() {
   m_useSequenceCheck->blockSignals(true);
   m_useSequenceCheck->setChecked(tmpSettings.useSequence);
   m_useSequenceCheck->blockSignals(false);
-  m_projectRootPathEdit->setText(tmpSettings.projectRootPath);
-  m_projectInfoFolderPathEdit->setText(tmpSettings.projectInfoFolderPath);
-  m_logRootPathEdit->setText(tmpSettings.logRootPath);
+  showProjectPath(m_projectRootPathEdit, tmpSettings.projectRootPath);
+  showProjectPath(m_projectInfoFolderPathEdit,
+                  tmpSettings.projectInfoFolderPath);
+  showProjectPath(m_logRootPathEdit, tmpSettings.logRootPath);
   m_gasUrlEdit->setText(tmpSettings.gasUrl);
-  m_sceneThumbnailPathEdit->setText(tmpSettings.sceneThumbnailPath);
+  showProjectPath(m_sceneThumbnailPathEdit, tmpSettings.sceneThumbnailPath);
   // setChecked()はtoggled(bool)を発火してしまう（editingFinished系のシグナルと違い、
   // プログラムからの変更でも発火する）ため、リフレッシュ直後に誤ってdirty扱いされないよう
   // 一時的にシグナルを止める
@@ -381,15 +470,19 @@ void BasicsPage::onFieldEdited() {
   tmpSettings.projectDescription    = m_projectDescriptionEdit->toPlainText();
   tmpSettings.cutNumberPrefix       = m_cutNumberPrefixEdit->text();
   tmpSettings.useSequence           = m_useSequenceCheck->isChecked();
-  tmpSettings.projectRootPath       = m_projectRootPathEdit->text();
-  tmpSettings.projectInfoFolderPath = m_projectInfoFolderPathEdit->text();
+  tmpSettings.projectRootPath =
+      readProjectPath(m_projectRootPathEdit, tmpSettings.projectRootPath);
+  tmpSettings.projectInfoFolderPath = readProjectPath(
+      m_projectInfoFolderPathEdit, tmpSettings.projectInfoFolderPath);
   tmpSettings.hasEpisodes           = m_episodesGroupBox->isChecked();
   tmpSettings.episodeNames          = m_episodeNamesEdit->text().split(
       QRegularExpression("[,;]"), Qt::SkipEmptyParts);
   for (auto& name : tmpSettings.episodeNames) name = name.trimmed();
-  tmpSettings.logRootPath        = m_logRootPathEdit->text();
+  tmpSettings.logRootPath =
+      readProjectPath(m_logRootPathEdit, tmpSettings.logRootPath);
   tmpSettings.gasUrl             = m_gasUrlEdit->text();
-  tmpSettings.sceneThumbnailPath = m_sceneThumbnailPathEdit->text();
+  tmpSettings.sceneThumbnailPath =
+      readProjectPath(m_sceneThumbnailPathEdit, tmpSettings.sceneThumbnailPath);
   markDirty();
 }
 
@@ -714,7 +807,7 @@ void PathMacrosPage::refresh() {
       pathItem->setToolTip(tr(
           "This path is hidden. Turn off \"Obfuscate\" to view or edit it."));
     } else {
-      pathItem = new QTableWidgetItem(macroInfo.path);
+      pathItem = pathItemFor(macroInfo.path);
     }
     m_table->setItem(row, PathMacroColumn_Path, pathItem);
 
@@ -811,7 +904,8 @@ void PathMacrosPage::onItemChanged(QTableWidgetItem* item) {
     // 難読化ON時はセルを編集不可にしているため通常は発生しないが、念のためプレースホルダーの
     // 表示文字列で実際の値を上書きしてしまわないよう防御する
     if (!tmpSettings.pathMacros[row].doObfuscate)
-      tmpSettings.pathMacros[row].path = item->text();
+      tmpSettings.pathMacros[row].path =
+          readProjectPath(item, tmpSettings.pathMacros[row].path);
     break;
   case PathMacroColumn_Label:
     tmpSettings.pathMacros[row].labelName = item->text();
@@ -997,7 +1091,7 @@ void WfGroupsPage::refresh() {
                     });
 
     m_table->setItem(row, WfGroupColumn_SubfolderForOpenButton,
-                     new QTableWidgetItem(info.subfolderForOpenButton));
+                     pathItemFor(info.subfolderForOpenButton));
   }
 
   m_table->blockSignals(false);
@@ -1120,7 +1214,8 @@ void WfGroupsPage::onItemChanged(QTableWidgetItem* item) {
     info.xdtsFileName = item->text();
     break;
   case WfGroupColumn_SubfolderForOpenButton:
-    info.subfolderForOpenButton = item->text();
+    info.subfolderForOpenButton =
+        readProjectPath(item, info.subfolderForOpenButton);
     break;
   default:
     return;
@@ -2184,14 +2279,25 @@ void buildStepMacroLineField(
   QFormLayout* fl = newProjectFormLayout();
   fl->setContentsMargins(0, 0, 0, 0);
   MacroLineEdit* edit = new MacroLineEdit(parentWidget);
-  edit->setText(value);
+  const bool pathField = step.type != Step_InputGoogleSpreadsheet &&
+                         step.type != Step_NotifyGoogleChat;
   if (candidateProvider) edit->setMacroCandidateProvider(candidateProvider);
   if (!tooltip.isEmpty()) edit->setToolTip(tooltip);
+  if (pathField)
+    showProjectPath(edit, value);
+  else
+    edit->setText(value);
   QObject::connect(edit, &MacroLineEdit::editingFinished, parentWidget,
-                   [editor, paramIndex, edit, onChanged]() {
-                     editor([paramIndex, edit](ActionStep& s) {
+                   [editor, paramIndex, edit, onChanged, pathField]() {
+                     const QString previous =
+                         readStep(editor).params.value(paramIndex).toString();
+                     const QString value = pathField
+                                               ? readProjectPath(edit, previous)
+                                               : edit->text();
+                     if (previous == value) return;
+                     editor([paramIndex, value](ActionStep& s) {
                        ensureParamSize(s, paramIndex);
-                       s.params[paramIndex] = edit->text();
+                       s.params[paramIndex] = value;
                      });
                      onChanged();
                    });
@@ -2200,7 +2306,7 @@ void buildStepMacroLineField(
                           parentWidget, edit, suggestionProvider,
                           [editor, paramIndex, edit,
                            onChanged](const QString& chosen) {
-                            edit->setText(chosen);
+                            showProjectPath(edit, chosen);
                             editor([paramIndex, chosen](ActionStep& s) {
                               ensureParamSize(s, paramIndex);
                               s.params[paramIndex] = chosen;
@@ -2436,6 +2542,9 @@ void buildStepPathListField(
     std::function<QStringList()> candidateProvider  = nullptr,
     std::function<QStringList()> suggestionProvider = nullptr) {
   ActionStep step = readStep(editor);
+  const bool pathField =
+      step.type != Step_CheckExistence ||
+      !step.params.value(0).toString().contains("[SCENEINFO]");
 
   parentLay->addWidget(new QLabel(label, parentWidget));
   QTableWidget* table = new QTableWidget(0, 1, parentWidget);
@@ -2459,20 +2568,29 @@ void buildStepPathListField(
   for (int i = startIndex; i < step.params.size(); i++) {
     int row = table->rowCount();
     table->insertRow(row);
-    table->setItem(row, 0, new QTableWidgetItem(step.params.at(i).toString()));
+    table->setItem(row, 0,
+                   pathField
+                       ? pathItemFor(step.params.at(i).toString())
+                       : new QTableWidgetItem(step.params.at(i).toString()));
   }
   parentLay->addWidget(table);
 
-  QObject::connect(table, &QTableWidget::itemChanged, parentWidget,
-                   [editor, startIndex, onChanged](QTableWidgetItem* item) {
-                     int paramIndex = startIndex + item->row();
-                     QString text   = item->text();
-                     editor([paramIndex, text](ActionStep& s) {
-                       ensureParamSize(s, paramIndex);
-                       s.params[paramIndex] = text;
-                     });
-                     onChanged();
-                   });
+  QObject::connect(
+      table, &QTableWidget::itemChanged, parentWidget,
+      [editor, startIndex, onChanged, pathField](QTableWidgetItem* item) {
+        int paramIndex = startIndex + item->row();
+        QString text =
+            pathField
+                ? readProjectPath(
+                      item,
+                      readStep(editor).params.value(paramIndex).toString())
+                : item->text();
+        editor([paramIndex, text](ActionStep& s) {
+          ensureParamSize(s, paramIndex);
+          s.params[paramIndex] = text;
+        });
+        onChanged();
+      });
 
   QHBoxLayout* btnLay = new QHBoxLayout();
   btnLay->setContentsMargins(0, 0, 0, 0);
@@ -4035,7 +4153,7 @@ void WorkflowPage::updateProtocolTableRow(int index) {
   if (auto* item = m_protocolTable->item(index, 0))
     item->setText(mediaTypeDisplayName(protocols.at(index).mediaType));
   if (auto* item = m_protocolTable->item(index, 1))
-    item->setText(protocols.at(index).conditionPath);
+    showProjectPath(item, protocols.at(index).conditionPath);
 }
 
 void WorkflowPage::rebuildColumn2() {
@@ -4194,8 +4312,8 @@ void WorkflowPage::rebuildColumn2() {
     m_protocolTable->setItem(i, 0,
                              new QTableWidgetItem(mediaTypeDisplayName(
                                  wf.protocols.at(i).mediaType)));
-    m_protocolTable->setItem(
-        i, 1, new QTableWidgetItem(wf.protocols.at(i).conditionPath));
+    m_protocolTable->setItem(i, 1,
+                             pathItemFor(wf.protocols.at(i).conditionPath));
   }
   lay->addWidget(m_protocolTable, 1);
 
@@ -4333,14 +4451,15 @@ void WorkflowPage::rebuildColumn3() {
   formLay->addRow(tr("Media Type"), mediaCombo);
 
   MacroLineEdit* conditionPathEdit = new MacroLineEdit();
-  conditionPathEdit->setText(protocol.conditionPath);
+  showProjectPath(conditionPathEdit, protocol.conditionPath);
   connect(conditionPathEdit, &MacroLineEdit::editingFinished, this,
           [this, wfIndex, protoIndex, conditionPathEdit]() {
             if (wfIndex < 0 || wfIndex >= tmpSettings.workflows.size()) return;
             QList<WorkflowProtocol>& protocols =
                 tmpSettings.workflows[wfIndex].protocols;
             if (protoIndex < 0 || protoIndex >= protocols.size()) return;
-            protocols[protoIndex].conditionPath = conditionPathEdit->text();
+            auto& stored = protocols[protoIndex].conditionPath;
+            stored       = readProjectPath(conditionPathEdit, stored);
             updateProtocolTableRow(protoIndex);
             markDirty();
           });
@@ -4389,7 +4508,7 @@ void WorkflowPage::rebuildColumn3() {
             QPoint(0, conditionPathSuggestButton->height())));
         if (!chosen) return;
 
-        conditionPathEdit->setText(chosen->text());
+        showProjectPath(conditionPathEdit, chosen->text());
         QList<WorkflowProtocol>& protocols =
             tmpSettings.workflows[wfIndex].protocols;
         if (protoIndex < 0 || protoIndex >= protocols.size()) return;

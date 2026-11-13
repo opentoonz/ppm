@@ -1,3 +1,4 @@
+#include "sharedfiles.h"
 #include "mywindow.h"
 #include "platform.h"
 #include "usersettingspopup.h"
@@ -362,9 +363,18 @@ namespace {
 // 指定した1カット分のSEQUENCE/TAKE/R_TAKE/Rewind/CUTNUMBERを解決し、キューファイルが
 // 存在するかどうかを判定する。呼び出しごとに新たにローカルコピーを作って置換するため、
 // 他のカットの呼び出しと状態を共有せず、QtConcurrentによる並列呼び出しでも安全
-bool cutQueueFileExists(const QString& conditionPathBase,
-                        const QString& cutName,
-                        FlowGroupInfo::TakeNotationStyle takeStyle) {
+enum class CueStatus { Missing, Found, Ambiguous };
+CueStatus cueStatus(const QString& expanded) {
+  if (expanded.isEmpty()) return CueStatus::Missing;
+  const QString actual = SharedFiles::actualPath(
+      WorkflowManager::instance()->resolveProjectPath(expanded));
+  if (actual.isEmpty()) return CueStatus::Ambiguous;
+  return QFileInfo::exists(actual) ? CueStatus::Found : CueStatus::Missing;
+}
+
+CueStatus cutQueueFileExists(const QString& conditionPathBase,
+                             const QString& cutName,
+                             FlowGroupInfo::TakeNotationStyle takeStyle) {
   QString conditionPath = conditionPathBase;
   conditionPath.replace(
       "[SEQUENCE]", WorkflowManager::instance()->sceneNum2Sequence(cutName));
@@ -396,12 +406,13 @@ bool cutQueueFileExists(const QString& conditionPathBase,
     for (auto dupCutName : dupCutList) {
       QString tmpConditionPath = conditionPath;
       tmpConditionPath.replace("[CUTNUMBER]", dupCutName);
-      if (QFileInfo::exists(tmpConditionPath)) return true;
+      auto status = cueStatus(tmpConditionPath);
+      if (status != CueStatus::Missing) return status;
     }
-    return false;
+    return CueStatus::Missing;
   } else {
     conditionPath.replace("[CUTNUMBER]", cutName);
-    return QFileInfo::exists(conditionPath);
+    return cueStatus(conditionPath);
   }
 }
 }  // namespace
@@ -431,12 +442,11 @@ void MyTable::simpleSearch(FlowGroupId fgId) {
     // 各プロトコルについて
     for (auto protocol : wf.protocols) {
       // 条件パスを取得
-      QString conditionPathBase =
-          WorkflowManager::instance()->decodePathMacros(protocol.conditionPath);
+      QString conditionPathBase = WorkflowManager::instance()->decodePathMacros(
+          protocol.conditionPath, true);
       // 条件パスをデコード
-      //  ROOT, PREFIX, EPISODE
-      conditionPathBase.replace("[ROOT]",
-                                WorkflowManager::instance()->projectRootPath());
+      // PREFIX and EPISODE; resolve ROOT with the per-scene path.
+
       conditionPathBase.replace("[PREFIX]",
                                 WorkflowManager::instance()->cutNumberPrefix());
       conditionPathBase.replace("[USER_NAME]",
@@ -450,14 +460,21 @@ void MyTable::simpleSearch(FlowGroupId fgId) {
         if (!wfSceneList.contains(cutName)) remainingCuts.append(cutName);
 
       // 各カットについて、キューファイルの有無をQtConcurrentで並列に判定する
-      QList<bool> foundList = QtConcurrent::blockingMapped(
+      QList<CueStatus> foundList = QtConcurrent::blockingMapped(
           remainingCuts,
           [&conditionPathBase, takeStyle](const QString& cutName) {
             return cutQueueFileExists(conditionPathBase, cutName, takeStyle);
           });
 
+      if (foundList.contains(CueStatus::Ambiguous)) {
+        QMessageBox::warning(
+            this, tr("Refresh"),
+            tr("Multiple file names have the same Unicode spelling. The "
+               "progress list was not updated."));
+        return;
+      }
       for (int i = 0; i < remainingCuts.size(); i++)
-        if (foundList.at(i))
+        if (foundList.at(i) == CueStatus::Found)
           // 存在するならWfSceneListに追加
           wfSceneList.append(remainingCuts.at(i));
     }  // 次のプロトコル
@@ -484,6 +501,7 @@ struct DoRefreshWorkItem {
 
 struct DoRefreshResult {
   bool found = false;
+  bool ambiguous = false;
   DataInfo info;
 };
 
@@ -498,8 +516,9 @@ DoRefreshResult doRefreshWorkItem(const DoRefreshWorkItem& item) {
   info.sequence =
       WorkflowManager::instance()->sceneNum2Sequence(item.sceneNumber);
   // Scene Thumbnail Pathが未設定のプロジェクトでは空文字列を返す
-  info.thumbnailPath = WorkflowManager::instance()->sceneThumbnailPathFor(
-      info.sequence, item.sceneNumber);
+  info.thumbnailPath = SharedFiles::actualPath(
+      WorkflowManager::instance()->sceneThumbnailPathFor(info.sequence,
+                                                         item.sceneNumber));
 
   switch (WorkflowManager::instance()
               ->flowGroupInfos()
@@ -546,7 +565,15 @@ DoRefreshResult doRefreshWorkItem(const DoRefreshWorkItem& item) {
     bool found = false;
     for (auto searchConditionPath : searchConditionPaths) {
       // 存在する場合
-      QFileInfo fileInfo(searchConditionPath);
+      auto* manager          = WorkflowManager::instance();
+      const QString resolved = manager->decodeObfuscatedPathMacros(
+          searchConditionPath, info.sequence, info.sceneNumber);
+      const QString actual = SharedFiles::actualPath(resolved);
+      if (!resolved.isEmpty() && actual.isEmpty()) {
+        result.ambiguous = true;
+        return result;
+      }
+      QFileInfo fileInfo(actual);
       if (fileInfo.exists()) {
         // ファイル名、パス、更新日時の追加
         info.paths.append(fileInfo.absoluteFilePath());
@@ -616,6 +643,11 @@ void MyTable::doRefresh(const QList<WorkflowType>& checkedWfTypes,
       QtConcurrent::blockingMapped(workItems, doRefreshWorkItem);
 
   // 判定結果に基づき、見つかったものだけをテーブルに登録する（QTableWidgetの操作はメインスレッドで行う）
+  if (std::any_of(results.cbegin(), results.cend(),
+                  [](const DoRefreshResult& r) { return r.ambiguous; }))
+    QMessageBox::warning(this, tr("Refresh"),
+                         tr("Multiple file names have the same Unicode "
+                            "spelling. Conflicting scenes were skipped."));
   for (auto& result : results) {
     if (!result.found) continue;
     // Rowを1行追加
@@ -741,9 +773,13 @@ void MyTable::registerItem(int r, DataInfo info, bool isLocked,
   // Enable / disable, アクション実装
   // xdts path
   QStringList xdtsFileNames;
+  bool ambiguousXdts    = false;
   QStringList xdtsPaths = WorkflowManager::instance()->xdtsPaths(
       wf.groupId, info.sequence, info.sceneNumber, xdtsFileNames, false,
-      info.paths);
+      info.paths, &ambiguousXdts);
+  if (ambiguousXdts)
+    xdtsButton->setToolTip(
+        tr("Multiple file names have the same Unicode spelling."));
   // std::cout << "xdtsPath = " << xdtsPath.toStdString() << std::endl;
   if (xdtsPaths.isEmpty())
     xdtsButton->setDisabled(true);
@@ -991,7 +1027,10 @@ bool MyTable::setSpecialOpenButton(QPushButton* openButton, DataInfo info) {
   subDirName = WorkflowManager::collapseSeparators(subDirName);
 
   QDir dir = QFileInfo(info.paths[0]).dir();
-  dir.cd(subDirName);
+  QString local = WorkflowManager::instance()->resolveProjectPath(subDirName);
+  if (local.isEmpty()) return false;
+  QString subfolder = SharedFiles::actualPath(dir.filePath(local));
+  if (subfolder.isEmpty() || !dir.cd(subfolder)) return false;
   if (!dir.exists()) return false;
   QStringList filters;
   filters << "*.clip" << "*.tvpp" << "*.tnz";

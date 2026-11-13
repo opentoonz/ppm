@@ -40,7 +40,7 @@ Press the button on the right of a folder field to choose the folder.
 
 A **relative path** is treated as a path relative to the Stuff folder.
 For example, `sample_data` means `[Stuff folder]/sample_data`.
-If you put the folders in the shared folder of your studio, use a path that looks the same from every PC, such as `\\server\share\my_title` (see [Running PPM on a Shared Folder](../administration/shared-operation.md)).
+With shared Stuff, prefer relative paths. For an absolute path, the field shows the location used on this machine. Hover over the field to see the stored path or a warning if no mapping matches. You can enter either form. Saving another setting preserves the original text of untouched path fields. An unmatched new absolute path can be saved after confirmation. See [Running PPM on a Shared Folder](../administration/shared-operation.md).
 
 In a path, `[ROOT]` is replaced with the root folder.
 Usually you write the locations of scene folders, which you decide in [Path Macros](path-macros.md), in the form `[ROOT]/...`.

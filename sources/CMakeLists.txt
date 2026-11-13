@@ -24,6 +24,8 @@ set(MOC_HEADERS
 
 set(HEADERS
     ${MOC_HEADERS}
+    pathmapping.h
+    sharedfiles.h
     configurationpaths.h
     platform.h
     workflowtypes.h
@@ -34,6 +36,8 @@ set(HEADERS
 
 set(SOURCES
 main.cpp
+pathmapping.cpp
+sharedfiles.cpp
 configurationpaths.cpp
 platform.cpp
 mywindow.cpp
@@ -202,7 +206,7 @@ if(PPM_BUILD_TESTS)
     target_link_libraries(ppm_sceneinfotag_tests PRIVATE Qt6::Test Qt6::Gui)
     add_test(NAME ppm_sceneinfotag_tests COMMAND ppm_sceneinfotag_tests)
     add_executable(ppm_confirmation_tests tests/confirmationdialog_test.cpp
-        actionconfirmationdialog.cpp workflow.cpp usersettings.cpp configurationpaths.cpp platform.cpp
+        actionconfirmationdialog.cpp workflow.cpp usersettings.cpp configurationpaths.cpp platform.cpp pathmapping.cpp sharedfiles.cpp
         sceneinfotag.cpp renamescript.cpp googlegateway.cpp googlechatgateway.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/moc_actionconfirmationdialog.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/moc_workflow.cpp
@@ -214,6 +218,16 @@ if(PPM_BUILD_TESTS)
         Qt6::Network Qt6::Core5Compat Qt6::Qml)
     add_test(NAME ppm_confirmation_tests COMMAND ppm_confirmation_tests)
     set_tests_properties(ppm_confirmation_tests PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen" TIMEOUT 30)
+    set(shared_test_sources ${SOURCES})
+    list(REMOVE_ITEM shared_test_sources main.cpp)
+    add_executable(ppm_shared_tests tests/shared_test.cpp ${shared_test_sources} ${RESOURCES})
+    add_dependencies(ppm_shared_tests ppm)
+    set_target_properties(ppm_shared_tests PROPERTIES AUTOMOC ON
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/shared-tests")
+    target_link_libraries(ppm_shared_tests PRIVATE Qt6::Test Qt6::Widgets Qt6::Concurrent
+        Qt6::Network Qt6::Core5Compat Qt6::Qml)
+    add_test(NAME ppm_shared_tests COMMAND ppm_shared_tests)
+    set_tests_properties(ppm_shared_tests PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen" TIMEOUT 60)
     if(APPLE)
         add_executable(ppm_macos_operations_tests tests/macos_operations_test.cpp platform.cpp)
         set_target_properties(ppm_macos_operations_tests PROPERTIES AUTOMOC ON)

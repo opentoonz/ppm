@@ -267,6 +267,7 @@ private:
 
   bool
       m_skipCueFile;  // trueのとき、Cueファイルの選択を無効化する（すでにStep_Copyで別名コピー済みなので）
+  bool m_ambiguousXdts = false;
   QString m_orgFileName;
 
   // テイク接尾辞の変換ペア。
@@ -300,7 +301,8 @@ private:
 public:
   StepExecutor_CopyFolderContents(FlowGroupId groupId, const ActionStep& step,
                                   QString orgPath, QString sequence,
-                                  QString sceneNumber, bool isUndo);
+                                  QString sceneNumber, bool isUndo,
+                                  bool localDestination = false);
   ~StepExecutor_CopyFolderContents() override;
   QWidget* createWidget() override;
   QWidget* createWidget_do();
@@ -418,7 +420,8 @@ class StepExecutor_CreateCueFile : public StepExecutor {
 
 public:
   StepExecutor_CreateCueFile(const ActionStep& step, QString sequence,
-                             QString sceneNumber, bool isUndo);
+                             QString sceneNumber, bool isUndo,
+                             bool localDestination = false);
 
   QWidget* createWidget() override;
   bool execute(QString& log, QVariant& checkSum) override;
@@ -707,6 +710,7 @@ protected:
   QList<ActionInfo> m_actionInfos;
   bool m_isUndo;
   bool m_isCanceled;
+  bool m_invalidConditionPath = false;
 
   QList<QList<StepExecutor*>> m_stepExecutors;
 

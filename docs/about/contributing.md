@@ -113,7 +113,7 @@ Start the application with `open build/PPM.app`. Keep the Qt installation availa
 
 PPM resolves a relative `StuffFolderPath` from `~/Library/Application Support/PPM`, independently of the app location and working directory. An absolute local path such as `/Volumes/anime/PPM/stuff` also works. Per-user settings are stored in `~/Library/Application Support/PPM/usersettings.ini`; see [The Stuff Folder](../administration/stuff-folder.md) and [Preferences](../using/preferences.md).
 
-The experimental macOS build supports external applications and the Zip Folder step. Mixed Windows/macOS production shares are still outside its supported scope. Use a separate test copy of the Stuff folder and production data when evaluating it. Opening the sample project can update its progress files.
+The experimental macOS build supports external applications and the Zip Folder step. For Windows and macOS clients sharing project data, configure the Stuff folder and path mappings as described in [Running PPM on a Shared Folder](../administration/shared-operation.md). Use a separate test copy of the Stuff folder and production data when evaluating it. Opening the sample project can update its progress files.
 
 ### Focused behavior tests
 

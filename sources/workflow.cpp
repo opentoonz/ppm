@@ -1,3 +1,4 @@
+#include "sharedfiles.h"
 #include "workflow.h"
 #include "workflow.h"
 #include "actionconfirmationdialog.h"
@@ -704,6 +705,7 @@ void WorkflowManager::logAction(const QString& sequence,
                                 const QString& cutNumber,
                                 const QString& workflow,
                                 const QString& action) {
+  if (logRootPath().isEmpty()) return;
   QDir dir(logRootPathForCurrentEpisode());
   // シークエンス名のフォルダを作る（シークエンスを使わない場合は、ルートフォルダに直接保存する）
   if (!enterSequenceFolder(dir, sequence, true)) {
@@ -772,6 +774,7 @@ void WorkflowManager::saveSceneInfoTag(const QString& sequence,
                                        const QString& infoTagName,
                                        const QVariant& value,
                                        const QString& actionName) {
+  if (infoFolderPath().isEmpty()) return;
   QDir dir(sceneInfoFolderPath());
   // シークエンス名のフォルダを作る
   if (!enterSequenceFolder(dir, sequence, true)) {
@@ -803,6 +806,7 @@ void WorkflowManager::releaseSceneInfoTag(const QString& sequence,
                                           const QString& cutNumber,
                                           const QString& infoTagName,
                                           const QString& actionName) {
+  if (infoFolderPath().isEmpty()) return;
   QDir dir(sceneInfoFolderPath());
   // シークエンス名のフォルダを作る
   if (!enterSequenceFolder(dir, sequence, true)) {
@@ -834,6 +838,7 @@ QVariant WorkflowManager::sceneInfoTag(const QString& sequence,
                                        const QString& cutNumber,
                                        const QString& infoTagName,
                                        const QVariant& defaultValue) const {
+  if (infoFolderPath().isEmpty()) return defaultValue;
   QDir dir(sceneInfoFolderPath());
   if (!enterSequenceFolder(dir, sequence, false)) return defaultValue;
 
@@ -848,6 +853,7 @@ QVariant WorkflowManager::sceneInfoTag(const QString& sequence,
 
 const QMap<QString, QVariant> WorkflowManager::sceneInfoTags(
     const QString& sequence, const QString& cutNumber) {
+  if (infoFolderPath().isEmpty()) return {};
   QDir dir(sceneInfoFolderPath());
   if (!enterSequenceFolder(dir, sequence, false))
     return QMap<QString, QVariant>();
@@ -925,7 +931,8 @@ QString WorkflowManager::decodePathMacros(QString path, bool decodeObfuscated) {
 QString WorkflowManager::decodePath(const QString& codedPath,
                                     const QString& sequence,
                                     const QString& sceneNumber,
-                                    const QString& stockSceneNumbers) {
+                                    const QString& stockSceneNumbers,
+                                    bool filesystemPath) {
   QString retPath = codedPath;
 
   retPath = decodePathMacros(retPath);
@@ -945,7 +952,7 @@ QString WorkflowManager::decodePath(const QString& codedPath,
     else {  // 兼用カットの場合
       // ファイル名だけを個別のカット番号に置き換える
       int sepIndex =
-          std::max(retPath.lastIndexOf('/'), retPath.lastIndexOf('/'));
+          std::max(retPath.lastIndexOf('/'), retPath.lastIndexOf('\\'));
       QString folderPath = retPath.left(sepIndex);
       QString fileName   = retPath.right(retPath.size() - sepIndex);
       folderPath.replace("[CUTNUMBER]", stockSceneNumbers);
@@ -967,8 +974,10 @@ QString WorkflowManager::decodePath(const QString& codedPath,
   }
 
   // decode Root path
-  if (retPath.contains("[ROOT]"))
-    retPath.replace("[ROOT]", WorkflowManager::instance()->projectRootPath());
+  if (filesystemPath)
+    retPath = resolveProjectPath(retPath);
+  else
+    retPath.replace("[ROOT]", projectRootPath());
 
   //[PREV_EXISTING_TAKE]をテイク接尾辞に置き換える。存在する直前のテイク接尾辞を返す。
   // フォルダの有無を実際のパスで調べるため、[ROOT]などを置き換えた後に行う
@@ -983,7 +992,8 @@ QString WorkflowManager::decodePath(const QString& codedPath,
       // 難読化されたパスマクロが残っている場合は、デコードしてから調べる
       tmpPath = decodeObfuscatedPathMacros(tmpPath, sequence, sceneNumber,
                                            stockSceneNumbers);
-      if (QDir(tmpPath).exists()) {
+      if (!tmpPath.isEmpty() &&
+          QFileInfo(SharedFiles::actualPath(tmpPath)).isDir()) {
         lastTakeSuffix = tmpSuffix;
         break;
       }
@@ -1054,8 +1064,26 @@ QString WorkflowManager::hideObfuscatedPaths(const QString& text,
   return result;
 }
 
+QString WorkflowManager::resolveProjectPath(const QString& expanded) const {
+  QString stored = expanded;
+  if (stored.contains("[ROOT]")) {
+    if (!PathMappings::isAbsolute(m_projectRootPath)) {
+      const QString localRoot = projectRootPath();
+      if (localRoot.isEmpty()) return {};
+      stored.replace("[ROOT]", localRoot);
+      return stored;
+    }
+    stored.replace("[ROOT]", m_projectRootPath);
+  }
+  return UserSettings::instance()->pathMappings().filesystemPath(stored);
+}
+
 QString WorkflowManager::resolvePathFromStuffFolder(const QString& path) {
-  if (path.isEmpty() || !QDir::isRelativePath(path)) return path;
+  if (path.isEmpty()) return path;
+  if (PathMappings::isAbsolute(path))
+    return SharedFiles::actualPath(
+        UserSettings::instance()->pathMappings().filesystemPath(path));
+  if (!QDir::isRelativePath(path)) return path;
   return QDir::cleanPath(UserSettings::instance()->stuffFolderPath() + "/" +
                          path);
 }
@@ -1063,7 +1091,10 @@ QString WorkflowManager::resolvePathFromStuffFolder(const QString& path) {
 // pathがProjectRootの下にある場合、Rootからの相対パスを返す
 QString WorkflowManager::relativePathFromProjectRoot(const QString& path) {
   const QString rootPath = projectRootPath();
-  if (!path.startsWith(rootPath)) return path;
+  if (rootPath.isEmpty() ||
+      !(path == rootPath ||
+        path.startsWith(rootPath.endsWith('/') ? rootPath : rootPath + '/')))
+    return path;
   return QDir(rootPath).relativeFilePath(path);
 }
 
@@ -1079,7 +1110,6 @@ QString WorkflowManager::cutFolderPath(FlowGroupId id, QString sequence,
     }
   }
 
-  ret.replace("[ROOT]", WorkflowManager::instance()->projectRootPath());
   ret.replace("[PREFIX]", m_cutNumberPrefix);
   ret.replace("[USER_NAME]", UserSettings::instance()->userName());
   ret.replace("[EPISODE]", m_currentEpisode);
@@ -1094,7 +1124,7 @@ QString WorkflowManager::cutFolderPath(FlowGroupId id, QString sequence,
 
   ret.replace("[R_TAKE]", takeNum2RSuffix(take));
 
-  return ret;
+  return SharedFiles::actualPath(resolveProjectPath(ret));
 }
 
 // 兼用カットの場合、0150_0152 → 0150 と
@@ -1104,7 +1134,10 @@ QStringList WorkflowManager::xdtsPaths(FlowGroupId id, QString sequence,
                                        QString sceneNumber,
                                        QStringList& xdtsFileNames,
                                        bool obtainBothGengaAndDouga,
-                                       const QStringList& cueFilePaths) {
+                                       const QStringList& cueFilePaths,
+                                       bool* ambiguous) {
+  bool conflict = false;
+  if (ambiguous) *ambiguous = false;
   QStringList ret;
 
   QStringList sceneNames = sceneNumber.split('_', Qt::SkipEmptyParts);
@@ -1133,9 +1166,7 @@ QStringList WorkflowManager::xdtsPaths(FlowGroupId id, QString sequence,
     QString folder = QFileInfo(cueFilePath).absolutePath();
     bool already   = false;
     for (auto& f : searchFolders)
-      if (QFileInfo(f).absoluteFilePath().compare(
-              QFileInfo(folder).absoluteFilePath(), Qt::CaseInsensitive) == 0)
-        already = true;
+      if (SharedFiles::sameEntry(f, folder)) already = true;
     if (!already) searchFolders.append(folder);
   }
 
@@ -1143,12 +1174,20 @@ QStringList WorkflowManager::xdtsPaths(FlowGroupId id, QString sequence,
   // 先に探したフォルダ（標準カットフォルダ）のものだけを使う
   // （xdtsFileNamesは、メニューの表示名やコピーするファイル名として使われるため）
   auto addIfExists = [&](const QString& fileName) {
-    if (xdtsFileNames.contains(fileName, Qt::CaseInsensitive)) return true;
+    for (const QString& found : xdtsFileNames)
+      if (found.normalized(QString::NormalizationForm_C) ==
+          fileName.normalized(QString::NormalizationForm_C))
+        return true;
     for (auto& folder : searchFolders) {
-      QString tmpPath = folder + "/" + fileName;
+      if (folder.isEmpty()) continue;
+      QString tmpPath = SharedFiles::actualPath(folder + "/" + fileName);
+      if (tmpPath.isEmpty()) {
+        conflict = true;
+        return false;
+      }
       if (QFileInfo(tmpPath).exists()) {
         ret.append(tmpPath);
-        xdtsFileNames.append(fileName);
+        xdtsFileNames.append(QFileInfo(tmpPath).fileName());
         return true;
       }
     }
@@ -1172,17 +1211,24 @@ QStringList WorkflowManager::xdtsPaths(FlowGroupId id, QString sequence,
       addIfExists(fileName);
   }
 
+  if (conflict) {
+    if (ambiguous) *ambiguous = true;
+    xdtsFileNames.clear();
+    return {};
+  }
   return ret;
 }
 
 QString WorkflowManager::logFilePath(QString sequence, QString sceneNumber) {
   QString fileName = m_cutNumberPrefix + sceneNumber + ".md";
+  if (logRootPath().isEmpty()) return {};
   return logRootPathForCurrentEpisode() +
          (sequence.isEmpty() ? QString() : "/" + sequence) + "/" + fileName;
 }
 
 QString WorkflowManager::googleCueFilePath(QString googleCueFileName) {
   const QString logRoot = logRootPath();
+  if (logRoot.isEmpty()) return {};
   QDir(logRoot).mkpath("google_spreadsheet_cues");
   return logRoot + "/google_spreadsheet_cues/" + googleCueFileName +
          ".ini";
@@ -1213,6 +1259,7 @@ QList<FlowGroupId> WorkflowManager::flowGroupsContainingCuts(
 
 void WorkflowManager::registerCutNames(QStringList cutNames, FlowGroupId fgId,
                                        QString actionName) {
+  if (infoFolderPath().isEmpty()) return;
   QDir prjInfoFolder(progressFolderPath());
   if (!prjInfoFolder.exists()) prjInfoFolder.mkpath(".");
 
@@ -1264,6 +1311,7 @@ void WorkflowManager::registerCutNameToBranchFlowGroup(QStringList cutNames,
                                                        FlowGroupId fgId,
                                                        bool isAdd,
                                                        QString actionName) {
+  if (infoFolderPath().isEmpty()) return;
   QDir prjInfoFolder(progressFolderPath());
   if (!prjInfoFolder.exists()) prjInfoFolder.mkpath(".");
 
@@ -1314,6 +1362,7 @@ void WorkflowManager::loadCutList() {
   // カットリスト読み込み
   m_cutListInFlow.clear();
   m_cutListInBranchFlow.clear();
+  if (infoFolderPath().isEmpty()) return;
   QDir prjInfoFolder(progressFolderPath());
   if (!prjInfoFolder.exists()) prjInfoFolder.mkpath(".");
   for (auto fgId : m_flowGroupInfos.keys()) {
@@ -1358,6 +1407,7 @@ QString WorkflowManager::decodeConditionPathForToolTip(QString path) {
 
 // 現在のテイク番号を返す
 int WorkflowManager::currentTake(const QString sceneNumber) const {
+  if (infoFolderPath().isEmpty()) return -1;
   QDir dir(sceneInfoFolderPath());
 
   QString sequence = sceneNum2Sequence(sceneNumber);
@@ -1412,6 +1462,7 @@ bool WorkflowManager::doRetake(const QString sceneNumber, const int takeNum,
                                const QString comment) {
   QString sequence = sceneNum2Sequence(sceneNumber);
   if (!isValidSceneName(sceneNumber)) return false;
+  if (infoFolderPath().isEmpty()) return false;
   QDir dir(sceneInfoFolderPath() +
            (sequence.isEmpty() ? QString() : "/" + sequence));
   if (!dir.exists())
@@ -1441,7 +1492,7 @@ QString WorkflowManager::createCutFolder(const QString sceneNumber,
   QString sequence = sceneNum2Sequence(sceneNumber);
   QString path     = cutFolderPath(passToFgId, sequence, sceneNumber, takeNum);
   std::cout << "create path : " << path.toStdString() << std::endl;
-  if (QDir(path).mkpath("."))
+  if (!path.isEmpty() && QDir(path).mkpath("."))
     return path;
   else
     return QString();
@@ -1451,6 +1502,7 @@ QVariantMap WorkflowManager::obtainRetakeInfo(const QString sceneNumber,
                                               int takeNum) const {
   QVariantMap ret;
 
+  if (infoFolderPath().isEmpty()) return {};
   QDir dir(sceneInfoFolderPath());
 
   QString sequence = sceneNum2Sequence(sceneNumber);
@@ -1484,6 +1536,7 @@ QVariantMap WorkflowManager::obtainRetakeInfo(const QString sceneNumber,
 void WorkflowManager::getProgressSettingsFilePath(const FlowGroupId fgId,
                                                   QString& settingsPath,
                                                   QString& lockPath) {
+  if (infoFolderPath().isEmpty()) return;
   QDir prjInfoFolder(progressCacheFolderPath());
   QString progressSettingsName = m_flowGroupInfos[fgId].idName + "_details.ini";
   QString lockFileName = m_flowGroupInfos[fgId].idName + "_details.lock";
@@ -1497,6 +1550,7 @@ void WorkflowManager::saveProgressList(
     const QMap<WorkflowType, QStringList> progressList) {
   QString settingsPath, lockPath;
   getProgressSettingsFilePath(fgId, settingsPath, lockPath);
+  if (settingsPath.isEmpty()) return;
 
   QLockFile lockFile(lockPath);
   lockFile.lock();
@@ -1534,6 +1588,7 @@ void WorkflowManager::getProgressList(
     const FlowGroupId fgId, QMap<WorkflowType, QStringList>& progressList) {
   QString settingsPath, lockPath;
   getProgressSettingsFilePath(fgId, settingsPath, lockPath);
+  if (settingsPath.isEmpty()) return;
 
   QLockFile lockFile(lockPath);
   lockFile.lock();
@@ -1563,6 +1618,7 @@ void WorkflowManager::setProgress(const QString sceneNumber,
   FlowGroupId fgId = WfType2FgId(wfType);
   QString settingsPath, lockPath;
   getProgressSettingsFilePath(fgId, settingsPath, lockPath);
+  if (settingsPath.isEmpty()) return;
 
   QLockFile lockFile(lockPath);
   lockFile.lock();
@@ -1608,10 +1664,9 @@ bool WorkflowManager::saveProject(const QString& prjName,
 
   wfObject["title"]           = m_projectTitle;
   wfObject["description"]     = m_projectDescription;
-  wfObject["projectRootPath"] = QDir::fromNativeSeparators(m_projectRootPath);
-  wfObject["logRootPath"]     = QDir::fromNativeSeparators(m_logRootPath);
-  wfObject["projectInfoFolderPath"] =
-      QDir::fromNativeSeparators(m_projectInfoFolderPath);
+  wfObject["projectRootPath"]       = m_projectRootPath;
+  wfObject["logRootPath"]           = m_logRootPath;
+  wfObject["projectInfoFolderPath"] = m_projectInfoFolderPath;
   wfObject["cutNumberPrefix"] = m_cutNumberPrefix;
   wfObject["useSequence"]     = m_useSequence;
   // GASのURLは、スプレッドシートへの書き込みやChatへの投稿ができる入口のため、難読化して保存する

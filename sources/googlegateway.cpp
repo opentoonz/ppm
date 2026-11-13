@@ -68,6 +68,11 @@ void GoogleWorker::process() {
                                     m_flowName, m_values.join("_"));
   // ログの出力先フォルダの特定にのみ使う（実際のキューファイルは排他取得後に作る）
   QString logDirRefPath = WorkflowManager::instance()->googleCueFilePath("log");
+  if (logDirRefPath.isEmpty()) {
+    emit inputFailed(m_cutNumbers.join("_"), m_requestId);
+    emit processEnd();
+    return;
+  }
   appendGoogleLog(logDirRefPath, "[QUEUED] " + requestSummary);
 
   // 他のリクエストが処理中の間はここで待つ（同時に複数のリクエストを投げない）

@@ -3,6 +3,10 @@
 #include "workflow.h"
 
 #include <QLineEdit>
+#include <QTableWidget>
+#include <QHeaderView>
+#include <QCheckBox>
+#include <QDialogButtonBox>
 #include <QComboBox>
 #include <QLocale>
 #include <QMessageBox>
@@ -145,6 +149,11 @@ UserSettingsPopup::UserSettingsPopup(QWidget* parent, Qt::WindowFlags f)
       uiLay->addWidget(userNameLabel, 7, 0, Qt::AlignRight | Qt::AlignVCenter);
       uiLay->addWidget(m_userName, 7, 1);
     }
+    auto* mappingsButton =
+        new QPushButton(tr("Shared folder mappings..."), this);
+    uiLay->addWidget(mappingsButton, 8, 1);
+    connect(mappingsButton, &QPushButton::clicked, this,
+            &UserSettingsPopup::editMappings);
     mainLay->addLayout(uiLay);
 
     QHBoxLayout* btnLay = new QHBoxLayout();
@@ -175,6 +184,82 @@ UserSettingsPopup::UserSettingsPopup(QWidget* parent, Qt::WindowFlags f)
   connect(m_languageCombo, SIGNAL(activated(int)), this,
           SLOT(onLanguageActivated()));
   connect(okButton, SIGNAL(clicked()), this, SLOT(accept()));
+}
+
+void UserSettingsPopup::editMappings() {
+  auto* settings = UserSettings::instance();
+  QDialog dialog(this);
+  dialog.setWindowTitle(tr("Shared folder mappings"));
+  auto* layout = new QVBoxLayout(&dialog);
+  auto* inherit =
+      new QCheckBox(tr("Use platform defaults from the Stuff folder"));
+  inherit->setChecked(settings->inheritsMappings());
+  layout->addWidget(inherit);
+  auto* table = new QTableWidget(0, 2);
+  table->setHorizontalHeaderLabels(
+      {tr("Stored project prefix"), tr("Local folder prefix")});
+  table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+  table->setSelectionBehavior(QAbstractItemView::SelectRows);
+  layout->addWidget(table);
+  auto populate = [table](const PathMappings& mappings) {
+    table->setRowCount(0);
+    for (const auto& pair : mappings.rows) {
+      int row = table->rowCount();
+      table->insertRow(row);
+      table->setItem(row, 0, new QTableWidgetItem(pair.stored));
+      table->setItem(row, 1, new QTableWidgetItem(pair.local));
+    }
+  };
+  populate(settings->configuredMappings());
+  auto* buttons =
+      new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+  auto* add    = buttons->addButton(tr("Add"), QDialogButtonBox::ActionRole);
+  auto* remove = buttons->addButton(tr("Remove"), QDialogButtonBox::ActionRole);
+  auto enableEditing = [=](bool defaults) {
+    table->setEnabled(!defaults);
+    add->setEnabled(!defaults);
+    remove->setEnabled(!defaults);
+  };
+  enableEditing(inherit->isChecked());
+  connect(inherit, &QCheckBox::toggled, &dialog, [=](bool defaults) {
+    populate(defaults ? settings->defaultMappings()
+                      : settings->configuredMappings());
+    enableEditing(defaults);
+  });
+  connect(add, &QPushButton::clicked, &dialog, [table]() {
+    int row = table->rowCount();
+    table->insertRow(row);
+    for (int col = 0; col < 2; ++col)
+      table->setItem(row, col, new QTableWidgetItem());
+    table->setCurrentCell(row, 0);
+    table->editItem(table->item(row, 0));
+  });
+  connect(remove, &QPushButton::clicked, &dialog, [table]() {
+    if (table->currentRow() >= 0) table->removeRow(table->currentRow());
+  });
+  layout->addWidget(new QLabel(tr("Changes apply the next time PPM starts.")));
+  layout->addWidget(buttons);
+  connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+  connect(buttons, &QDialogButtonBox::accepted, &dialog, [&]() {
+    PathMappings mappings;
+    if (!inherit->isChecked()) {
+      for (int i = 0; i < table->rowCount(); ++i) {
+        PathMapping pair{table->item(i, 0)->text(), table->item(i, 1)->text()};
+        if (!mappings.accepts(pair)) {
+          table->setCurrentCell(i, 0);
+          QMessageBox::warning(&dialog, tr("Shared folder mappings"),
+                               tr("Enter two absolute paths and use each "
+                                  "stored prefix only once."));
+          return;
+        }
+        mappings.rows.append(pair);
+      }
+    }
+    settings->setPathMappings(mappings, inherit->isChecked());
+    dialog.accept();
+  });
+  dialog.resize(570, 300);
+  dialog.exec();
 }
 
 QString UserSettingsPopup::chooseApplication(const QString& title,

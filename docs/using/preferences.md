@@ -30,9 +30,24 @@ In that case, the OpenToonz arguments are not used.
 
 If the file at an application path cannot be found, or the translation file of the selected language cannot be found, a warning is shown when PPM starts.
 
+## Shared folder mappings
+
+Open **Shared folder mappings...** in Preferences. Clear **Use platform defaults from the Stuff folder** to edit your own table. Add one row per shared location. The left column is the absolute prefix stored in the project and the right column is its location on this machine. **OK** saves the entire table. An empty personal table disables mapping. Select the defaults checkbox again to inherit future changes from the studio. Restart PPM to apply the table.
+
+Administrators can put `defaultusersettings_windows.ini` and `defaultusersettings_macos.ini` in Stuff. For example, the Mac file can contain:
+
+```ini
+[PathMappings]
+size=1
+1\stored=//fileserver/anime
+1\local=/Volumes/anime
+```
+
+Use forward slashes in the values. Server and share names are stored in plain text. Match complete directory prefixes, ignoring case and slash direction. The longest stored prefix wins when opening a project. When saving an edited field, PPM asks you to choose if several stored paths are possible.
+
 ## Saving the settings
 
-Each item is saved when you finish entering it (when you move from the field to somewhere else).
+The fields in the main Preferences dialog are saved when you finish entering it (when you move from the field to somewhere else).
 The **OK** button only closes the dialog.
 
 On Windows, the preferences are saved in the following file.
@@ -45,7 +60,7 @@ On Windows, the preferences are saved in the following file.
 
 On macOS, the file is `~/Library/Application Support/PPM/usersettings.ini`, where `~` is your home folder. It is separate from the app bundle and the Stuff folder.
 
-For items you have never changed in Preferences, the contents of `defaultusersettings.ini` in the Stuff folder are used as the initial values.
+For the application and language settings you have never changed, the contents of `defaultusersettings.ini` in the Stuff folder are used as the initial values.
 See [The Stuff Folder](../administration/stuff-folder.md) for details.
 
 ## States recorded automatically

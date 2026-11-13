@@ -11,6 +11,7 @@ class UserSettingsPopup : public QDialog {
   QLineEdit *m_tvpPath, *m_cspPath, *m_xdtsViewerPath, *m_otPath, *m_otArg,
       *m_userName;
   QComboBox* m_languageCombo;
+  void editMappings();
   QString chooseApplication(const QString& title, const QString& currentPath);
 
 public:

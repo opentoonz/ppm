@@ -2,6 +2,7 @@
 #ifndef USERSETTINGS_H
 #define USERSETTINGS_H
 
+#include "pathmapping.h"
 #include <QString>
 #include <QStringList>
 #include <QList>
@@ -21,6 +22,8 @@ class UserSettings {  // singleton
   QString m_userNameOverride;
 
   QString m_stuffFolderPath;
+  PathMappings m_defaultMappings, m_mappings, m_activeMappings;
+  bool m_inheritMappings = true;
 
   // UIの言語（翻訳ファイルPPM_[languageCode].qmの[languageCode]。例："ja"）。
   // 空文字列の場合は翻訳なし（英語）。言語を変更した場合、次回の起動時に反映される
@@ -53,6 +56,12 @@ public:
   void setUserNameOverride(const QString&);
 
   QString stuffFolderPath() const { return m_stuffFolderPath; }
+
+  const PathMappings& pathMappings() const { return m_activeMappings; }
+  const PathMappings& configuredMappings() const { return m_mappings; }
+  const PathMappings& defaultMappings() const { return m_defaultMappings; }
+  bool inheritsMappings() const { return m_inheritMappings; }
+  void setPathMappings(const PathMappings& mappings, bool inherit);
 
   QString getLicenseFolderPath() const;
 

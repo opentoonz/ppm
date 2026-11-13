@@ -60,6 +60,10 @@ Action : %2</source>
         <source>Are you sure ?</source>
         <translation>よろしいですか ?</translation>
     </message>
+    <message>
+        <source>The condition path is ambiguous or unavailable.</source>
+        <translation>条件パスを特定できません。パスの設定とファイル名を確認してください。</translation>
+    </message>
 </context>
 <context>
     <name>AsynchronousUndoButton</name>
@@ -1058,6 +1062,22 @@ Check the path of the application in Preferences.</source>
         <location filename="../mywindow.cpp" line="1575"/>
         <source>[UNDO FAILED] </source>
         <translation>[取り消し失敗] </translation>
+    </message>
+    <message>
+        <source>Refresh</source>
+        <translation>更新</translation>
+    </message>
+    <message>
+        <source>Multiple file names have the same Unicode spelling. The progress list was not updated.</source>
+        <translation>Unicode 正規化で同じ名前になるファイルが複数あります。進捗リストの更新を中止しました。</translation>
+    </message>
+    <message>
+        <source>Multiple file names have the same Unicode spelling. Conflicting scenes were skipped.</source>
+        <translation>Unicode 正規化で同じ名前になるファイルが複数あります。該当するカットの表示をスキップしました。</translation>
+    </message>
+    <message>
+        <source>Multiple file names have the same Unicode spelling.</source>
+        <translation>Unicode 正規化で同じ名前になるファイルが複数あります。</translation>
     </message>
 </context>
 <context>
@@ -2393,6 +2413,26 @@ Do you want to save the project?</source>
         <source>Adds the workflow to the next workflows of this action. Use it inside a conditional branch step to add the workflow only when the condition is met.</source>
         <translation>このアクションの次工程に、指定した工程を追加します。条件分岐ステップの中で使うと、条件を満たしたときだけ工程を追加できます。</translation>
     </message>
+    <message>
+        <source>Stored path: %1</source>
+        <translation>保存パス：%1</translation>
+    </message>
+    <message>
+        <source>No mapping for this absolute path on this machine: %1</source>
+        <translation>この端末では次の絶対パスに対応する設定がありません：%1</translation>
+    </message>
+    <message>
+        <source>Shared folder mappings</source>
+        <translation>共有フォルダのパス対応表</translation>
+    </message>
+    <message>
+        <source>Choose the path to store in the project.</source>
+        <translation>プロジェクトに保存するパスを選んでください。</translation>
+    </message>
+    <message>
+        <source>No mapping matches %1. This path may not work on other machines. Save it as entered?</source>
+        <translation>%1 に対応する設定がありません。他の端末で使用できない可能性があります。入力したパスを保存しますか？</translation>
+    </message>
 </context>
 <context>
     <name>RegisterDialog</name>
@@ -2942,6 +2982,10 @@ Rewind to: %3</source>
         <source>Are you sure ?</source>
         <translation>よろしいですか ?</translation>
     </message>
+    <message>
+        <source>The condition path is ambiguous or unavailable.</source>
+        <translation>条件パスを特定できません。パスの設定とファイル名を確認してください。</translation>
+    </message>
 </context>
 <context>
     <name>RewindDestinationDialog</name>
@@ -3254,6 +3298,24 @@ Do you want to overwrite it?</source>
         <translation>  フォルダ %1 は空でないため残しました。
 </translation>
     </message>
+    <message>
+        <source>Ambiguous or empty file path.
+</source>
+        <translation>ファイルのパスが空欄か、対象を特定できません。
+</translation>
+    </message>
+    <message>
+        <source>Multiple file names have the same Unicode spelling.
+</source>
+        <translation>Unicode 正規化で同じ名前になるファイルが複数あります。
+</translation>
+    </message>
+    <message>
+        <source>Ambiguous source or destination.
+</source>
+        <translation>操作元と操作先を一意に特定できません。
+</translation>
+    </message>
 </context>
 <context>
     <name>StepExecutor_AddProgress</name>
@@ -3339,6 +3401,12 @@ Deleting the file %1...</source>
         <source>Failed.
 </source>
         <translation>失敗。
+</translation>
+    </message>
+    <message>
+        <source>Ambiguous or empty file path.
+</source>
+        <translation>ファイルのパスが空欄か、対象を特定できません。
 </translation>
     </message>
 </context>
@@ -3432,6 +3500,12 @@ Deleting the file %1...</source>
         <location filename="../actionconfirmationdialog.cpp" line="2667"/>
         <source>Scene info(s) that should not exist to proceed the action are found!</source>
         <translation>アクションを進めるのに、あってはいけないカット情報が見つかりました！</translation>
+    </message>
+    <message>
+        <source>Ambiguous or empty file path.
+</source>
+        <translation>ファイルのパスが空欄か、対象を特定できません。
+</translation>
     </message>
 </context>
 <context>
@@ -3575,6 +3649,18 @@ The undo operation cannot restore them.</source>
 
 [警告] コピーによって既存のファイルが上書きされています。
 取り消し操作では元に戻せません。</translation>
+    </message>
+    <message>
+        <source>Ambiguous or missing source file.
+</source>
+        <translation>操作元のファイルが見つからないか、一意に特定できません。
+</translation>
+    </message>
+    <message>
+        <source>Ambiguous source or destination.
+</source>
+        <translation>操作元と操作先を一意に特定できません。
+</translation>
     </message>
 </context>
 <context>
@@ -3953,6 +4039,30 @@ N.B. Overwritten files will not be restored on undo.</source>
         <translation>[エラー] リネームルールを使えません。このステップは失敗します。
 %1</translation>
     </message>
+    <message>
+        <source>Ambiguous or empty file path.
+</source>
+        <translation>ファイルのパスが空欄か、対象を特定できません。
+</translation>
+    </message>
+    <message>
+        <source>The destination is ambiguous or inside the source folder.
+</source>
+        <translation>操作先を特定できないか、操作先がコピー元のフォルダ内にあります。
+</translation>
+    </message>
+    <message>
+        <source>Ambiguous source or destination.
+</source>
+        <translation>操作元と操作先を一意に特定できません。
+</translation>
+    </message>
+    <message>
+        <source>Multiple file names have the same Unicode spelling.
+</source>
+        <translation>Unicode 正規化で同じ名前になるファイルが複数あります。
+</translation>
+    </message>
 </context>
 <context>
     <name>StepExecutor_CreateCueFile</name>
@@ -4057,6 +4167,12 @@ Do you want to create it?</source>
         <translation>フォルダ %1 の作成に失敗しました。
 </translation>
     </message>
+    <message>
+        <source>Ambiguous or empty file path.
+</source>
+        <translation>ファイルのパスが空欄か、対象を特定できません。
+</translation>
+    </message>
 </context>
 <context>
     <name>StepExecutor_CreateEmptyFolder</name>
@@ -4127,6 +4243,12 @@ Do you want to create it?</source>
         <source>Skipped as the folder already exists.
 </source>
         <translation>フォルダが既に存在するためスキップされます。
+</translation>
+    </message>
+    <message>
+        <source>Ambiguous or empty file path.
+</source>
+        <translation>ファイルのパスが空欄か、対象を特定できません。
 </translation>
     </message>
 </context>
@@ -4206,6 +4328,12 @@ To: %2
         <location filename="../actionconfirmationdialog.cpp" line="3866"/>
         <source>  Remove renamed file: </source>
         <translation>  リネームされたファイルを削除： </translation>
+    </message>
+    <message>
+        <source>Ambiguous or occupied destination.
+</source>
+        <translation>操作先を特定できないか、すでに同名のファイルがあります。
+</translation>
     </message>
 </context>
 <context>
@@ -4627,6 +4755,18 @@ To: %2
         <source>  Remove renamed files: </source>
         <translation>  リネームされたファイルを削除： </translation>
     </message>
+    <message>
+        <source>Ambiguous or missing source file.
+</source>
+        <translation>操作元のファイルが見つからないか、一意に特定できません。
+</translation>
+    </message>
+    <message>
+        <source>Ambiguous source or destination.
+</source>
+        <translation>操作元と操作先を一意に特定できません。
+</translation>
+    </message>
 </context>
 <context>
     <name>StepExecutor_RenameFile</name>
@@ -4857,6 +4997,18 @@ The undo operation cannot restore them.</source>
 [警告] コピーによって既存のファイルが上書きされています。
 取り消し操作では元に戻せません。</translation>
     </message>
+    <message>
+        <source>Ambiguous or empty file path.
+</source>
+        <translation>ファイルのパスが空欄か、対象を特定できません。
+</translation>
+    </message>
+    <message>
+        <source>Ambiguous source or destination.
+</source>
+        <translation>操作元と操作先を一意に特定できません。
+</translation>
+    </message>
 </context>
 <context>
     <name>StepExecutor_SetSceneInfo</name>
@@ -5071,6 +5223,12 @@ Do you want to create it?</source>
         <source> Start removing file %1...</source>
         <translation> ファイル %1 を削除します...</translation>
     </message>
+    <message>
+        <source>Ambiguous or empty file path.
+</source>
+        <translation>ファイルのパスが空欄か、対象を特定できません。
+</translation>
+    </message>
 </context>
 <context>
     <name>UserSettings</name>
@@ -5262,6 +5420,42 @@ The change is applied the next time the application is started.</source>
         <location filename="../usersettingspopup.cpp" line="240"/>
         <source>The change will be applied the next time the application is started.</source>
         <translation>変更は次回アプリケーションの起動時に反映されます。</translation>
+    </message>
+    <message>
+        <source>Shared folder mappings...</source>
+        <translation>共有フォルダのパス対応表...</translation>
+    </message>
+    <message>
+        <source>Shared folder mappings</source>
+        <translation>共有フォルダのパス対応表</translation>
+    </message>
+    <message>
+        <source>Use platform defaults from the Stuff folder</source>
+        <translation>Stuff フォルダの OS 別の既定値を使う</translation>
+    </message>
+    <message>
+        <source>Stored project prefix</source>
+        <translation>保存パスの先頭部分</translation>
+    </message>
+    <message>
+        <source>Local folder prefix</source>
+        <translation>この端末のパスの先頭部分</translation>
+    </message>
+    <message>
+        <source>Add</source>
+        <translation>追加</translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation>削除</translation>
+    </message>
+    <message>
+        <source>Changes apply the next time PPM starts.</source>
+        <translation>変更は次回の PPM 起動時に反映されます。</translation>
+    </message>
+    <message>
+        <source>Enter two absolute paths and use each stored prefix only once.</source>
+        <translation>両方の欄に絶対パスを入力してください。保存パスの先頭部分は重複して登録できません。</translation>
     </message>
 </context>
 <context>

@@ -113,7 +113,7 @@ StuffFolderPath=/absolute/path/to/ppm/stuff
 
 相対パスの `StuffFolderPath` は、アプリの場所や作業ディレクトリに関係なく `~/Library/Application Support/PPM` を起点に解決します。`/Volumes/anime/PPM/stuff` のようなローカルの絶対パスも使えます。ユーザーごとの設定は `~/Library/Application Support/PPM/usersettings.ini` に保存されます。[Stuff フォルダ](../administration/stuff-folder.ja.md) と [環境設定](../using/preferences.ja.md) も参照してください。
 
-macOS の試験的なビルドでは、外部アプリの起動と「フォルダのZIP圧縮」ステップを使えます。Windows と macOS が混在する制作共有フォルダでの運用は、まだサポート対象外です。評価には Stuff フォルダと制作データのテスト用コピーを使ってください。サンプルプロジェクトを開くだけでも進捗ファイルが更新されることがあります。
+macOS の試験的なビルドでは、外部アプリの起動と「フォルダのZIP圧縮」ステップを使えます。Windows と macOS でプロジェクトを共有する場合は、[共有フォルダでの運用](../administration/shared-operation.ja.md)に従い、Stuff フォルダとパス対応表を設定してください。評価には Stuff フォルダと制作データのテスト用コピーを使ってください。サンプルプロジェクトを開くだけでも進捗ファイルが更新されることがあります。
 
 ### 動作テスト
 

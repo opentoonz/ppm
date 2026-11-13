@@ -35,13 +35,17 @@ An example layout:
       └─ log\                … log folder
 ```
 
-### Use paths that look the same from every PC
+### Share the Stuff folder first
 
-The paths written in the project settings and in `conf.ini` must point to the same place on every PC.
+Point each machine's `conf.ini` at the same Stuff folder. In the project above, set the root to `../../my_title/cuts`, the project info folder to `../../my_title/PPM/info` and the log folder to `../../my_title/PPM/log`. These paths resolve from Stuff on both platforms, even if the Mac mounts the share at `/Volumes/anime-1`.
 
-- Paths that start with the server name (UNC paths), such as `\\fileserver\anime\...`, are the most reliable. In the project settings you can also write them as `//fileserver/anime/...`.
-- Paths with drive letters, such as `Z:\anime\...`, can be used only if every PC maps the same drive letter.
-- If you write the root folder and other folders as relative paths, they are relative to the Stuff folder. If the Stuff folder and the scene files are on the same server, relative paths mean less to rewrite when the server name changes.
+For absolute paths, Windows users can use UNC paths to avoid drive-letter differences. If the project stores `//fileserver/anime`, map it to `/Volumes/anime` on a Mac or to `Y:/` on a PC that accesses the share by drive letter. An existing project that stores `Z:/` can likewise map it to `Y:/`. An all-Mac studio can store its mount path directly. See [Preferences](../using/preferences.md) for the mapping table and an example defaults file.
+
+### File names, archives and logs
+
+Use names that Windows can create. Avoid `< > : " / \ | ? *`, trailing dots or spaces, and reserved names such as `CON` and `NUL`. Avoid names that differ only by case or by the composed and decomposed forms of a Japanese character. The share determines whether two differently capitalized paths identify the same file. When PPM finds multiple canonically equivalent names during a copy, resolve the conflict before retrying.
+
+Folder copies omit Finder's `.DS_Store` and AppleDouble `._*` files. Undo keeps a created folder if someone has added a drawing or another user file. Windows and macOS use different ZIP writers. When exchanging archives, check the extracted names and contents, especially Japanese names, with the receiving studio's extraction software. Action logs record the OS login name. The **User Name** preference changes the `[USER_NAME]` macro in paths.
 
 ### Where to put PPM itself
 

@@ -448,16 +448,19 @@ public:
   // アクション実行時、WorkflowのCodedPathを全てDecodeする。
   QString decodePath(const QString& codedPath, const QString& sequence,
                      const QString& sceneNumber,
-                     const QString& bankSceneNumbers = "");
+                     const QString& bankSceneNumbers = "",
+                     bool filesystemPath             = true);
 
+  QString resolveProjectPath(const QString& expanded) const;
   QString relativePathFromProjectRoot(const QString& path);
 
   QString cutFolderPath(FlowGroupId id, QString sequence, QString sceneNumber,
                         int take = 1);
   QStringList xdtsPaths(FlowGroupId id, QString sequence, QString sceneNumber,
                         QStringList& xdtsFileNames,
-                        bool obtainBothGengaAndDouga = false,
-                        const QStringList& cueFilePaths = QStringList());
+                        bool obtainBothGengaAndDouga    = false,
+                        const QStringList& cueFilePaths = QStringList(),
+                        bool* ambiguous                 = nullptr);
   QString logFilePath(QString sequence, QString sceneNumber);
   QString googleCueFilePath(const QString googleCueFileName);
 
